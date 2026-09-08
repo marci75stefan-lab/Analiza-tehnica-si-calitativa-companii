@@ -54,4 +54,5 @@ def search():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5329)
+    # see api/analyze.py for why use_reloader is disabled
+    app.run(debug=True, port=5329, use_reloader=False)

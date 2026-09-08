@@ -393,4 +393,8 @@ def analyze():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5328)
+    # use_reloader=False: Werkzeug's file-watching auto-restart has been
+    # observed to trigger on false-positive changes (even stdlib files) on
+    # Windows, killing in-flight requests mid-response. Debug pages/errors
+    # still work; just no more auto-restart-on-save for this backend.
+    app.run(debug=True, port=5328, use_reloader=False)
