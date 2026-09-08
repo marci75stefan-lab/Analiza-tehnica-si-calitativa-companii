@@ -136,7 +136,10 @@ export default function Home() {
         </form>
 
         <div className="mt-2 flex items-center gap-1">
-          <span className="mr-1 text-xs text-gray-400">Perioada:</span>
+          <span className="mr-1 flex items-center text-xs text-gray-400">
+            Perioada:
+            <Tooltip text={glossaryDefinition("YTD")} />
+          </span>
           {PERIOD_OPTIONS.map((opt) => (
             <button
               key={opt.value}

@@ -18,7 +18,7 @@ DISCLAIMER = (
 )
 
 MAX_TICKERS = 3
-ALLOWED_PERIODS = {"6mo", "1y", "2y", "5y"}
+ALLOWED_PERIODS = {"6mo", "ytd", "1y", "2y", "5y"}
 DEFAULT_PERIOD = "1y"
 
 # yfinance's default HTTP client (curl_cffi) can fail certificate validation

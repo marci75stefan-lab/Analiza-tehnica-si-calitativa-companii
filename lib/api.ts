@@ -2,10 +2,11 @@ import type { AnalyzeErrorResponse, AnalyzeResponse, SearchResult } from "./type
 
 export const MAX_TICKERS = 3;
 
-export type Period = "6mo" | "1y" | "2y" | "5y";
+export type Period = "6mo" | "ytd" | "1y" | "2y" | "5y";
 export const DEFAULT_PERIOD: Period = "1y";
 export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: "6mo", label: "6 luni" },
+  { value: "ytd", label: "YTD" },
   { value: "1y", label: "1 an" },
   { value: "2y", label: "2 ani" },
   { value: "5y", label: "5 ani" },

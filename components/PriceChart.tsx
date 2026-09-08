@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ColorType, createChart, type IChartApi } from "lightweight-charts";
 import type { PriceHistoryPoint } from "@/lib/types";
+
+type Mode = "price" | "percent";
 
 export default function PriceChart({ data }: { data: PriceHistoryPoint[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  const [mode, setMode] = useState<Mode>("price");
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -21,17 +24,32 @@ export default function PriceChart({ data }: { data: PriceHistoryPoint[] }) {
     });
     chartRef.current = chart;
 
-    const series = chart.addCandlestickSeries({
-      upColor: "#16a34a",
-      downColor: "#dc2626",
-      borderVisible: false,
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
-    });
+    if (mode === "price") {
+      const series = chart.addCandlestickSeries({
+        upColor: "#16a34a",
+        downColor: "#dc2626",
+        borderVisible: false,
+        wickUpColor: "#16a34a",
+        wickDownColor: "#dc2626",
+      });
+      series.setData(
+        data.map((d) => ({ time: d.date, open: d.open, high: d.high, low: d.low, close: d.close }))
+      );
+    } else {
+      const base = data[0]?.close;
+      const series = chart.addLineSeries({
+        color: "#2563eb",
+        lineWidth: 2,
+        priceFormat: { type: "percent", precision: 2, minMove: 0.01 },
+      });
+      series.setData(
+        data.map((d) => ({
+          time: d.date,
+          value: base ? ((d.close - base) / base) * 100 : 0,
+        }))
+      );
+    }
 
-    series.setData(
-      data.map((d) => ({ time: d.date, open: d.open, high: d.high, low: d.low, close: d.close }))
-    );
     chart.timeScale().fitContent();
 
     const handleResize = () => {
@@ -45,7 +63,31 @@ export default function PriceChart({ data }: { data: PriceHistoryPoint[] }) {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [data]);
+  }, [data, mode]);
 
-  return <div ref={containerRef} className="w-full" />;
+  return (
+    <div>
+      <div className="mb-1 flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={() => setMode("price")}
+          className={`rounded px-2 py-0.5 text-xs font-medium ${
+            mode === "price" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          Pret
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("percent")}
+          className={`rounded px-2 py-0.5 text-xs font-medium ${
+            mode === "percent" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          %
+        </button>
+      </div>
+      <div ref={containerRef} className="w-full" />
+    </div>
+  );
 }

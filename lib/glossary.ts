@@ -49,6 +49,13 @@ export const GLOSSARY: GlossaryTerm[] = [
       "Directia generala a pretului pe termen lung (EMA50 vs EMA200). Semnalele scurte care contrazic trendul mare sunt retrogradate la Neutru/Prudenta.",
   },
   {
+    key: "YTD",
+    term: "YTD (Year to Date)",
+    category: "tehnic",
+    definition:
+      "De la inceputul anului calendaristic curent pana azi (ex. 1 ianuarie - azi). Util pentru a vedea performanta doar din acest an.",
+  },
+  {
     key: "score",
     term: "Scor tehnic",
     category: "tehnic",
