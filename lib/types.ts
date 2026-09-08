@@ -63,3 +63,16 @@ export interface AnalyzeResponse {
 export interface AnalyzeErrorResponse {
   error: string;
 }
+
+export type CompleteTickerAnalysis = TickerAnalysis & {
+  companyName: string;
+  currency: string;
+  price: NonNullable<TickerAnalysis["price"]>;
+  fundamentals: NonNullable<TickerAnalysis["fundamentals"]>;
+  technical: NonNullable<TickerAnalysis["technical"]>;
+  qualitative: NonNullable<TickerAnalysis["qualitative"]>;
+};
+
+export function isCompleteAnalysis(r: TickerAnalysis): r is CompleteTickerAnalysis {
+  return !r.error && !!r.price && !!r.fundamentals && !!r.technical && !!r.qualitative;
+}
