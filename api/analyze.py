@@ -36,11 +36,20 @@ FALLBACK_SESSION.headers.update(
 
 
 def fetch_ticker(symbol, period=DEFAULT_PERIOD):
+    # auto_adjust=False: yfinance's default bakes dividends (and splits)
+    # into historical prices, which inflates simple price-change % vs.
+    # what raw closing prices - and every retail/exchange site (e.g.
+    # bvb.ro) - show. Raw prices can show a cliff around a stock split,
+    # but that's real historical trading data, not a bug; a custom
+    # split-only back-adjustment was tried and rejected here because it
+    # made a real-world comparison (bvb.ro) diverge further, not less -
+    # bvb.ro's own displayed change turned out to not correct for a
+    # corporate action (a bonus-share issue) either.
     tk = yf.Ticker(symbol)
-    hist = tk.history(period=period)
+    hist = tk.history(period=period, auto_adjust=False)
     if hist.empty:
         tk = yf.Ticker(symbol, session=FALLBACK_SESSION)
-        hist = tk.history(period=period)
+        hist = tk.history(period=period, auto_adjust=False)
     return tk, hist
 
 
