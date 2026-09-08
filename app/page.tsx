@@ -111,6 +111,7 @@ export default function Home() {
         <p className="mt-1 text-sm text-gray-500">
           Proiect educational. Semnalele generate nu constituie recomandare de investitii.
         </p>
+        <p className="text-xs text-gray-400">Sursa datelor: Yahoo Finance.</p>
 
         <div className="mt-6">
           <CompanySearch onPick={handleCompanyPick} />
