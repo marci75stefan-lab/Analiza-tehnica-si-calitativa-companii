@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { fetchAnalysis, MAX_TICKERS } from "@/lib/api";
+import { DEFAULT_PERIOD, fetchAnalysis, MAX_TICKERS, PERIOD_OPTIONS, type Period } from "@/lib/api";
 import { exportToCsv, exportToPdf } from "@/lib/export";
 import {
   addToHistory,
@@ -39,6 +39,7 @@ export default function Home() {
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
 
   useEffect(() => {
     setWatchlist(getWatchlist());
@@ -50,7 +51,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchAnalysis(tickers);
+      const result = await fetchAnalysis(tickers, period);
       setData(result);
       setHistory(addToHistory(tickers, result));
     } catch (err) {
@@ -133,6 +134,24 @@ export default function Home() {
             {loading ? "Se incarca..." : "Analizeaza"}
           </button>
         </form>
+
+        <div className="mt-2 flex items-center gap-1">
+          <span className="mr-1 text-xs text-gray-400">Perioada:</span>
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setPeriod(opt.value)}
+              className={`rounded px-2 py-1 text-xs font-medium ${
+                period === opt.value
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 

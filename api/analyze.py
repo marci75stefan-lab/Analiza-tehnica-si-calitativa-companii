@@ -18,6 +18,8 @@ DISCLAIMER = (
 )
 
 MAX_TICKERS = 3
+ALLOWED_PERIODS = {"6mo", "1y", "2y", "5y"}
+DEFAULT_PERIOD = "1y"
 
 # yfinance's default HTTP client (curl_cffi) can fail certificate validation
 # in some local dev setups. Fall back to a plain requests session (patched
@@ -33,12 +35,12 @@ FALLBACK_SESSION.headers.update(
 )
 
 
-def fetch_ticker(symbol):
+def fetch_ticker(symbol, period=DEFAULT_PERIOD):
     tk = yf.Ticker(symbol)
-    hist = tk.history(period="1y")
+    hist = tk.history(period=period)
     if hist.empty:
         tk = yf.Ticker(symbol, session=FALLBACK_SESSION)
-        hist = tk.history(period="1y")
+        hist = tk.history(period=period)
     return tk, hist
 
 
@@ -280,8 +282,8 @@ def qualitative_analysis(info, fcf, wacc):
     return {"signals": signals, "verdict": verdict}
 
 
-def analyze_ticker(ticker):
-    tk, hist = fetch_ticker(ticker)
+def analyze_ticker(ticker, period=DEFAULT_PERIOD):
+    tk, hist = fetch_ticker(ticker, period)
     if hist.empty:
         return {"ticker": ticker, "error": "Ticker invalid sau fara date disponibile."}
 
@@ -381,13 +383,16 @@ def analyze_ticker(ticker):
 def analyze():
     tickers_param = request.args.get("tickers", "")
     tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()]
+    period = request.args.get("period", DEFAULT_PERIOD)
+    if period not in ALLOWED_PERIODS:
+        period = DEFAULT_PERIOD
 
     if not tickers:
         return jsonify({"error": "Parametrul 'tickers' este obligatoriu."}), 400
     if len(tickers) > MAX_TICKERS:
         return jsonify({"error": f"Maxim {MAX_TICKERS} tickere per comparatie."}), 400
 
-    results = [analyze_ticker(t) for t in tickers]
+    results = [analyze_ticker(t, period) for t in tickers]
 
     return jsonify({"disclaimer": DISCLAIMER, "results": results})
 

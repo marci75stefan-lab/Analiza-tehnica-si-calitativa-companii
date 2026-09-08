@@ -2,12 +2,21 @@ import type { AnalyzeErrorResponse, AnalyzeResponse, SearchResult } from "./type
 
 export const MAX_TICKERS = 3;
 
+export type Period = "6mo" | "1y" | "2y" | "5y";
+export const DEFAULT_PERIOD: Period = "1y";
+export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: "6mo", label: "6 luni" },
+  { value: "1y", label: "1 an" },
+  { value: "2y", label: "2 ani" },
+  { value: "5y", label: "5 ani" },
+];
+
 // A well-formed error response from our own backend (e.g. "max 3 tickers",
 // "invalid ticker"). Not transient - retrying would just fail the same way.
 class ApplicationError extends Error {}
 
-async function requestAnalysis(tickers: string[]): Promise<AnalyzeResponse> {
-  const params = new URLSearchParams({ tickers: tickers.join(",") });
+async function requestAnalysis(tickers: string[], period: Period): Promise<AnalyzeResponse> {
+  const params = new URLSearchParams({ tickers: tickers.join(","), period });
   const res = await fetch(`/api/analyze?${params.toString()}`);
   const data: unknown = await res.json();
 
@@ -22,9 +31,12 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchAnalysis(tickers: string[]): Promise<AnalyzeResponse> {
+export async function fetchAnalysis(
+  tickers: string[],
+  period: Period = DEFAULT_PERIOD
+): Promise<AnalyzeResponse> {
   try {
-    return await requestAnalysis(tickers);
+    return await requestAnalysis(tickers, period);
   } catch (err) {
     if (err instanceof ApplicationError) {
       throw err;
@@ -34,7 +46,7 @@ export async function fetchAnalysis(tickers: string[]): Promise<AnalyzeResponse>
     // before bothering the user with an error.
     await delay(800);
     try {
-      return await requestAnalysis(tickers);
+      return await requestAnalysis(tickers, period);
     } catch (err2) {
       if (err2 instanceof ApplicationError) {
         throw err2;
