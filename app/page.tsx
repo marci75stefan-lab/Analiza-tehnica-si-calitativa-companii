@@ -14,6 +14,7 @@ import {
 import type { AnalyzeResponse, TickerAnalysis } from "@/lib/types";
 import { glossaryDefinition } from "@/lib/glossary";
 import PriceChart from "@/components/PriceChart";
+import CompanySearch from "@/components/CompanySearch";
 import Watchlist from "@/components/Watchlist";
 import HistoryPanel from "@/components/HistoryPanel";
 import ComparisonTable from "@/components/ComparisonTable";
@@ -89,6 +90,17 @@ export default function Home() {
     setError(null);
   }
 
+  function handleCompanyPick(symbol: string) {
+    setInput((prev) => {
+      const current = prev
+        .split(",")
+        .map((t) => t.trim().toUpperCase())
+        .filter(Boolean);
+      if (current.includes(symbol)) return prev;
+      return [...current, symbol].slice(0, MAX_TICKERS).join(", ");
+    });
+  }
+
   return (
     <main className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_260px]">
       <div>
@@ -99,7 +111,14 @@ export default function Home() {
           Proiect educational. Semnalele generate nu constituie recomandare de investitii.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
+        <div className="mt-6">
+          <CompanySearch onPick={handleCompanyPick} />
+          <p className="mt-1 text-xs text-gray-400">
+            Nu stii simbolul bursier (ticker)? Cauta compania dupa nume mai sus.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

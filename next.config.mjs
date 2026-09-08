@@ -8,8 +8,12 @@ const nextConfig = {
     if (process.env.NODE_ENV === "development") {
       return [
         {
-          source: "/api/:path*",
-          destination: "http://127.0.0.1:5328/api/:path*",
+          source: "/api/analyze",
+          destination: "http://127.0.0.1:5328/api/analyze",
+        },
+        {
+          source: "/api/search",
+          destination: "http://127.0.0.1:5329/api/search",
         },
       ];
     }

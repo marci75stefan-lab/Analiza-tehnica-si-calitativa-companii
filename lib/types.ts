@@ -64,6 +64,13 @@ export interface AnalyzeErrorResponse {
   error: string;
 }
 
+export interface SearchResult {
+  symbol: string;
+  name: string;
+  exchange: string | null;
+  quoteType: string;
+}
+
 export type CompleteTickerAnalysis = TickerAnalysis & {
   companyName: string;
   currency: string;

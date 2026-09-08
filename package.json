@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm:dev:next\" \"npm:dev:python\"",
+    "dev": "concurrently \"npm:dev:next\" \"npm:dev:analyze\" \"npm:dev:search\"",
     "dev:next": "next dev",
-    "dev:python": "python api/analyze.py",
+    "dev:analyze": "python api/analyze.py",
+    "dev:search": "python api/search.py",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
