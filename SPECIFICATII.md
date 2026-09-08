@@ -42,6 +42,8 @@ Compară indicatori fundamentali cu praguri sau cu media sectorului și genereaz
 - **Debt/Equity** peste un prag → semnal de risc financiar
 - **Profit margin** / **ROE** peste medie → semnal de eficiență operațională
 - **Dividend yield** → semnal relevant pentru investitori orientați spre venit
+- **FCF (Free Cash Flow)** — din `yfinance` (`freeCashflow`, cu fallback pe situația de cash flow) → pozitiv/negativ
+- **WACC (Cost Mediu Ponderat al Capitalului)** — calculat (CAPM pentru costul capitalului propriu, cu ipoteze simplificate: rată fără risc ~4.5%, primă de risc de piață ~5%; costul datoriei din dobânda/datoria totală raportată, cu fallback pe rată fără risc + marjă de credit ~2%; cotă de impozitare din situațiile financiare, cu fallback 21%) → comparat cu ROE: ROE > WACC = creare de valoare peste costul capitalului
 - Combinație de semnale → un rezumat/verdict agregat (ex. „X din Y semnale pozitive")
 
 ---

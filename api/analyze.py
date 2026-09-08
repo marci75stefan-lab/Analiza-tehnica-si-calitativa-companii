@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 import requests
 import yfinance as yf
 import numpy as np
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -127,7 +128,66 @@ def map_score_to_recommendation(score, trend):
     return "Vanzare puternica"
 
 
-def qualitative_analysis(info):
+# WACC assumptions (no live market-rate feed - keeps the app free and fast).
+# Documented here and surfaced to the user via the glossary, since these are
+# estimates, not exact figures.
+RISK_FREE_RATE = 0.045  # approx. long-run 10-year government bond yield
+EQUITY_RISK_PREMIUM = 0.05  # approx. long-run market risk premium
+DEFAULT_CREDIT_SPREAD = 0.02  # fallback spread over the risk-free rate
+DEFAULT_TAX_RATE = 0.21  # fallback effective tax rate
+
+
+def compute_fcf(tk, info):
+    fcf = info.get("freeCashflow")
+    if fcf is not None:
+        return float(fcf)
+    try:
+        cf = tk.cashflow
+        if "Free Cash Flow" in cf.index:
+            value = cf.loc["Free Cash Flow"].iloc[0]
+            return None if pd.isna(value) else float(value)
+    except Exception:
+        pass
+    return None
+
+
+def compute_wacc(tk, info):
+    market_cap = info.get("marketCap")
+    beta = info.get("beta")
+    if market_cap is None or beta is None:
+        return None
+
+    equity = float(market_cap)
+    debt = float(info.get("totalDebt") or 0)
+    total_value = equity + debt
+    if total_value <= 0:
+        return None
+
+    cost_of_equity = RISK_FREE_RATE + beta * EQUITY_RISK_PREMIUM
+    tax_rate = DEFAULT_TAX_RATE
+    cost_of_debt = RISK_FREE_RATE + DEFAULT_CREDIT_SPREAD
+
+    try:
+        fin = tk.financials
+        latest = fin.columns[0]
+        if "Tax Rate For Calcs" in fin.index:
+            value = fin.loc["Tax Rate For Calcs", latest]
+            if not pd.isna(value) and 0 <= value <= 1:
+                tax_rate = float(value)
+        if debt > 0 and "Interest Expense" in fin.index:
+            interest = fin.loc["Interest Expense", latest]
+            if not pd.isna(interest) and interest > 0:
+                cost_of_debt = float(interest) / debt
+    except Exception:
+        pass
+
+    equity_weight = equity / total_value
+    debt_weight = debt / total_value
+
+    return equity_weight * cost_of_equity + debt_weight * cost_of_debt * (1 - tax_rate)
+
+
+def qualitative_analysis(info, fcf, wacc):
     signals = []
 
     def add(metric, value, sentiment, note):
@@ -166,6 +226,43 @@ def qualitative_analysis(info):
     dividend = info.get("dividendYield")
     if dividend is not None:
         add("Dividend yield", dividend, "neutral", "Relevant pentru investitori orientati spre venit")
+
+    if fcf is not None:
+        if fcf > 0:
+            add(
+                "FCF (mil.)",
+                round(fcf / 1_000_000, 1),
+                "positive",
+                "Cash flow liber pozitiv - genereaza mai mult cash din operare decat investeste in capex",
+            )
+        else:
+            add(
+                "FCF (mil.)",
+                round(fcf / 1_000_000, 1),
+                "negative",
+                "Cash flow liber negativ - consuma cash net (poate fi normal in faza de investitii intensive)",
+            )
+
+    if wacc is not None:
+        roe = info.get("returnOnEquity")
+        wacc_pct = round(wacc * 100, 2)
+        if roe is not None:
+            if roe > wacc:
+                add(
+                    "WACC (%)",
+                    wacc_pct,
+                    "positive",
+                    f"ROE ({roe * 100:.1f}%) depaseste WACC - compania creeaza valoare peste costul capitalului",
+                )
+            else:
+                add(
+                    "WACC (%)",
+                    wacc_pct,
+                    "negative",
+                    f"ROE ({roe * 100:.1f}%) sub WACC - randamentul nu acopera costul capitalului",
+                )
+        else:
+            add("WACC (%)", wacc_pct, "neutral", "Cost mediu ponderat al capitalului (estimat, ipoteze simplificate)")
 
     positive = sum(1 for s in signals if s["sentiment"] == "positive")
     negative = sum(1 for s in signals if s["sentiment"] == "negative")
@@ -208,6 +305,9 @@ def analyze_ticker(ticker):
 
     total_score = s_ema + s_rsi + s_macd + s_boll
     recommendation = map_score_to_recommendation(total_score, trend)
+
+    fcf = compute_fcf(tk, info)
+    wacc = compute_wacc(tk, info)
 
     price_history = [
         {
@@ -263,7 +363,7 @@ def analyze_ticker(ticker):
             "score": total_score,
             "recommendation": recommendation,
         },
-        "qualitative": qualitative_analysis(info),
+        "qualitative": qualitative_analysis(info, fcf, wacc),
     }
 
 

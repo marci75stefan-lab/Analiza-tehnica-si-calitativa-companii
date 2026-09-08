@@ -109,6 +109,20 @@ export const GLOSSARY: GlossaryTerm[] = [
     category: "calitativ",
     definition: "Valoarea totala a companiei pe bursa (pret per actiune x numar de actiuni). Indica marimea companiei.",
   },
+  {
+    key: "FCF (mil.)",
+    term: "FCF (Free Cash Flow)",
+    category: "calitativ",
+    definition:
+      "Cash-ul ramas dupa ce compania isi acopera investitiile de capital (capex). FCF pozitiv = genereaza mai mult cash decat cheltuieste - poate finanta dividende sau reducerea datoriei fara finantare externa.",
+  },
+  {
+    key: "WACC (%)",
+    term: "WACC (Cost Mediu Ponderat al Capitalului)",
+    category: "calitativ",
+    definition:
+      "Costul mediu (ponderat intre capital propriu si datorie) pe care compania trebuie sa il acopere prin randamente. Estimat cu ipoteze simplificate (rata fara risc ~4.5%, prima de risc a pietei ~5%). Comparat cu ROE: daca ROE > WACC, compania creeaza valoare peste costul capitalului.",
+  },
 ];
 
 export function glossaryDefinition(key: string): string {
