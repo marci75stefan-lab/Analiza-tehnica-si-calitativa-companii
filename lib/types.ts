@@ -25,6 +25,8 @@ export interface TickerAnalysis {
   industry?: string;
   price?: {
     current: number;
+    change: number | null;
+    changePercent: number | null;
     history: PriceHistoryPoint[];
   };
   fundamentals?: {

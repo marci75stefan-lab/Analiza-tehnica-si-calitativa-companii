@@ -230,9 +230,18 @@ function TickerCard({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-lg font-semibold">
-            {formatNumber(price.current)} {result.currency}
-          </p>
+          <div className="text-right">
+            <p className="text-lg font-semibold">
+              {formatNumber(price.current)} {result.currency}
+            </p>
+            {price.change !== null && price.changePercent !== null && (
+              <p className={`text-xs font-medium ${price.change >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {price.change >= 0 ? "+" : ""}
+                {formatNumber(price.change)} ({price.change >= 0 ? "+" : ""}
+                {formatNumber(price.changePercent)}%) azi
+              </p>
+            )}
+          </div>
           <button
             type="button"
             onClick={onToggleWatchlist}

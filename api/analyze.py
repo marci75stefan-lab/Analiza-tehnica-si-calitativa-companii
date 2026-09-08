@@ -309,6 +309,14 @@ def analyze_ticker(ticker):
     fcf = compute_fcf(tk, info)
     wacc = compute_wacc(tk, info)
 
+    change = info.get("regularMarketChange")
+    change_percent = info.get("regularMarketChangePercent")
+    if (change is None or change_percent is None) and len(close) >= 2:
+        prev_close = float(close.iloc[-2])
+        last_close = float(close.iloc[-1])
+        change = last_close - prev_close
+        change_percent = (change / prev_close * 100) if prev_close else None
+
     price_history = [
         {
             "date": idx.strftime("%Y-%m-%d"),
@@ -329,6 +337,8 @@ def analyze_ticker(ticker):
         "industry": info.get("industry"),
         "price": {
             "current": round(float(close.iloc[-1]), 4),
+            "change": round(float(change), 4) if change is not None else None,
+            "changePercent": round(float(change_percent), 2) if change_percent is not None else None,
             "history": price_history,
         },
         "fundamentals": {
