@@ -1,4 +1,11 @@
+import truststore
+
+truststore.inject_into_ssl()  # use the OS certificate store instead of only
+# the static certifi bundle - some yfinance dependencies (and some local dev
+# setups, notably Windows) fail TLS verification against Yahoo otherwise.
+
 from flask import Flask, request, jsonify
+import requests
 import yfinance as yf
 import numpy as np
 
@@ -10,6 +17,28 @@ DISCLAIMER = (
 )
 
 MAX_TICKERS = 3
+
+# yfinance's default HTTP client (curl_cffi) can fail certificate validation
+# in some local dev setups. Fall back to a plain requests session (patched
+# by truststore above) if the default session returns no data.
+FALLBACK_SESSION = requests.Session()
+FALLBACK_SESSION.headers.update(
+    {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+        )
+    }
+)
+
+
+def fetch_ticker(symbol):
+    tk = yf.Ticker(symbol)
+    hist = tk.history(period="1y")
+    if hist.empty:
+        tk = yf.Ticker(symbol, session=FALLBACK_SESSION)
+        hist = tk.history(period="1y")
+    return tk, hist
 
 
 def compute_ema(series, span):
@@ -155,8 +184,7 @@ def qualitative_analysis(info):
 
 
 def analyze_ticker(ticker):
-    tk = yf.Ticker(ticker)
-    hist = tk.history(period="1y")
+    tk, hist = fetch_ticker(ticker)
     if hist.empty:
         return {"ticker": ticker, "error": "Ticker invalid sau fara date disponibile."}
 
