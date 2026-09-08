@@ -76,28 +76,28 @@ export const GLOSSARY: GlossaryTerm[] = [
     definition: "Profitul net al companiei impartit la numarul de actiuni. Cat profit produce fiecare actiune.",
   },
   {
-    key: "Debt/Equity",
+    key: "Debt/Equity (%)",
     term: "Debt/Equity",
     category: "calitativ",
     definition:
-      "Cat datoreaza compania comparativ cu capitalul propriu al actionarilor. Valoare mare = grad de indatorare ridicat = risc financiar mai mare.",
+      "Cat datoreaza compania comparativ cu capitalul propriu al actionarilor, exprimat in procente. Valoare mare = grad de indatorare ridicat = risc financiar mai mare.",
   },
   {
-    key: "Profit margin",
+    key: "Profit margin (%)",
     term: "Profit Margin",
     category: "calitativ",
     definition:
       "Ce procent din venituri ramane profit net dupa toate cheltuielile. Marja mare = companie eficienta.",
   },
   {
-    key: "ROE",
+    key: "ROE (%)",
     term: "ROE (Return on Equity)",
     category: "calitativ",
     definition:
-      "Cat profit genereaza compania pentru fiecare unitate investita de actionari. ROE mare = folosire eficienta a capitalului.",
+      "Cat profit genereaza compania pentru fiecare unitate investita de actionari, exprimat in procente. ROE mare = folosire eficienta a capitalului.",
   },
   {
-    key: "Dividend yield",
+    key: "Dividend yield (%)",
     term: "Dividend Yield",
     category: "calitativ",
     definition:

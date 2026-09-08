@@ -320,11 +320,12 @@ function TickerCard({
         </span>
         <span className="flex items-center">
           Debt/Equity: {formatNumber(fundamentals.debtToEquity)}
-          <Tooltip text={glossaryDefinition("Debt/Equity")} />
+          {fundamentals.debtToEquity !== null ? "%" : ""}
+          <Tooltip text={glossaryDefinition("Debt/Equity (%)")} />
         </span>
         <span className="flex items-center">
-          ROE: {formatNumber((fundamentals.returnOnEquity ?? 0) * 100)}%
-          <Tooltip text={glossaryDefinition("ROE")} />
+          ROE: {fundamentals.returnOnEquity !== null ? `${formatNumber(fundamentals.returnOnEquity * 100)}%` : "N/A"}
+          <Tooltip text={glossaryDefinition("ROE (%)")} />
         </span>
       </div>
 

@@ -205,27 +205,27 @@ def qualitative_analysis(info, fcf, wacc):
     dte = info.get("debtToEquity")
     if dte is not None:
         if dte > 100:
-            add("Debt/Equity", dte, "negative", "Grad de indatorare ridicat (risc financiar)")
+            add("Debt/Equity (%)", round(dte, 2), "negative", "Grad de indatorare ridicat (risc financiar)")
         else:
-            add("Debt/Equity", dte, "positive", "Grad de indatorare rezonabil")
+            add("Debt/Equity (%)", round(dte, 2), "positive", "Grad de indatorare rezonabil")
 
     margin = info.get("profitMargins")
     if margin is not None:
         if margin > 0.15:
-            add("Profit margin", margin, "positive", "Marja de profit solida")
+            add("Profit margin (%)", round(margin * 100, 2), "positive", "Marja de profit solida")
         else:
-            add("Profit margin", margin, "neutral", "Marja de profit modesta")
+            add("Profit margin (%)", round(margin * 100, 2), "neutral", "Marja de profit modesta")
 
     roe = info.get("returnOnEquity")
     if roe is not None:
         if roe > 0.15:
-            add("ROE", roe, "positive", "Eficienta ridicata a capitalului propriu")
+            add("ROE (%)", round(roe * 100, 2), "positive", "Eficienta ridicata a capitalului propriu")
         else:
-            add("ROE", roe, "neutral", "Eficienta moderata a capitalului propriu")
+            add("ROE (%)", round(roe * 100, 2), "neutral", "Eficienta moderata a capitalului propriu")
 
     dividend = info.get("dividendYield")
     if dividend is not None:
-        add("Dividend yield", dividend, "neutral", "Relevant pentru investitori orientati spre venit")
+        add("Dividend yield (%)", round(dividend, 2), "neutral", "Relevant pentru investitori orientati spre venit")
 
     if fcf is not None:
         if fcf > 0:
