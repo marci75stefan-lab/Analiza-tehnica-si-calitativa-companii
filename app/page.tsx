@@ -12,10 +12,13 @@ import {
   type HistoryEntry,
 } from "@/lib/localStorage";
 import type { AnalyzeResponse, TickerAnalysis } from "@/lib/types";
+import { glossaryDefinition } from "@/lib/glossary";
 import PriceChart from "@/components/PriceChart";
 import Watchlist from "@/components/Watchlist";
 import HistoryPanel from "@/components/HistoryPanel";
 import ComparisonTable from "@/components/ComparisonTable";
+import Tooltip from "@/components/Tooltip";
+import Glossary from "@/components/Glossary";
 
 function formatNumber(value: number | null | undefined, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
@@ -165,6 +168,10 @@ export default function Home() {
             <HistoryPanel entries={history} onSelect={handleHistorySelect} />
           </div>
         </section>
+
+        <section>
+          <Glossary />
+        </section>
       </aside>
     </main>
   );
@@ -227,20 +234,36 @@ function TickerCard({
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="rounded bg-gray-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Semnal tehnic</p>
+          <p className="flex items-center text-xs font-medium uppercase tracking-wide text-gray-500">
+            Semnal tehnic
+            <Tooltip text={glossaryDefinition("recommendation")} />
+          </p>
           <p className={`mt-1 text-xl font-bold ${recommendationColor(technical.recommendation)}`}>
             {technical.recommendation}
           </p>
-          <p className="text-xs text-gray-500">
-            Scor: {technical.score} (interval -8..+8) / trend de fond: {technical.trend}
+          <p className="flex items-center text-xs text-gray-500">
+            Scor: {technical.score} (interval -8..+8)
+            <Tooltip text={glossaryDefinition("score")} />
+            {" "}/ trend de fond: {technical.trend}
+            <Tooltip text={glossaryDefinition("trend")} />
           </p>
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
-            <li>EMA cross (9/21): {technical.signals.emaCross}</li>
-            <li>
-              RSI(14): {technical.signals.rsi} (valoare: {formatNumber(technical.indicators.rsi)})
+            <li className="flex items-center">
+              EMA cross (9/21): {technical.signals.emaCross}
+              <Tooltip text={glossaryDefinition("emaCross")} />
             </li>
-            <li>MACD: {technical.signals.macd}</li>
-            <li>Bollinger Bands: {technical.signals.bollinger}</li>
+            <li className="flex items-center">
+              RSI(14): {technical.signals.rsi} (valoare: {formatNumber(technical.indicators.rsi)})
+              <Tooltip text={glossaryDefinition("rsi")} />
+            </li>
+            <li className="flex items-center">
+              MACD: {technical.signals.macd}
+              <Tooltip text={glossaryDefinition("macd")} />
+            </li>
+            <li className="flex items-center">
+              Bollinger Bands: {technical.signals.bollinger}
+              <Tooltip text={glossaryDefinition("bollinger")} />
+            </li>
           </ul>
         </div>
 
@@ -249,8 +272,9 @@ function TickerCard({
           <p className="mt-1 text-sm font-medium text-gray-900">{qualitative.verdict}</p>
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
             {qualitative.signals.map((s) => (
-              <li key={s.metric}>
+              <li key={s.metric} className="flex items-center">
                 {s.metric}: {formatNumber(s.value)} - {s.note}
+                <Tooltip text={glossaryDefinition(s.metric)} />
               </li>
             ))}
           </ul>
@@ -258,10 +282,22 @@ function TickerCard({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 sm:grid-cols-4">
-        <span>P/E: {formatNumber(fundamentals.trailingPE)}</span>
-        <span>EPS: {formatNumber(fundamentals.trailingEps)}</span>
-        <span>Debt/Equity: {formatNumber(fundamentals.debtToEquity)}</span>
-        <span>ROE: {formatNumber((fundamentals.returnOnEquity ?? 0) * 100)}%</span>
+        <span className="flex items-center">
+          P/E: {formatNumber(fundamentals.trailingPE)}
+          <Tooltip text={glossaryDefinition("P/E")} />
+        </span>
+        <span className="flex items-center">
+          EPS: {formatNumber(fundamentals.trailingEps)}
+          <Tooltip text={glossaryDefinition("eps")} />
+        </span>
+        <span className="flex items-center">
+          Debt/Equity: {formatNumber(fundamentals.debtToEquity)}
+          <Tooltip text={glossaryDefinition("Debt/Equity")} />
+        </span>
+        <span className="flex items-center">
+          ROE: {formatNumber((fundamentals.returnOnEquity ?? 0) * 100)}%
+          <Tooltip text={glossaryDefinition("ROE")} />
+        </span>
       </div>
 
       <p className="mt-4 text-xs italic text-gray-400">{disclaimer}</p>
