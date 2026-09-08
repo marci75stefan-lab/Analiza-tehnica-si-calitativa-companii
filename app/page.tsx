@@ -278,6 +278,25 @@ function TickerCard({
         </div>
       </div>
 
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 sm:grid-cols-4">
+        <span className="flex items-center">
+          Inchidere anterioara: {formatNumber(price.previousClose)}
+          <Tooltip text={glossaryDefinition("previousClose")} />
+        </span>
+        <span className="flex items-center">
+          Deschidere: {formatNumber(price.open)}
+          <Tooltip text={glossaryDefinition("open")} />
+        </span>
+        <span className="flex items-center">
+          Interval zilnic: {formatNumber(price.dayLow)} - {formatNumber(price.dayHigh)}
+          <Tooltip text={glossaryDefinition("dayRange")} />
+        </span>
+        <span className="flex items-center">
+          Interval 52 saptamani: {formatNumber(price.week52Low)} - {formatNumber(price.week52High)}
+          <Tooltip text={glossaryDefinition("week52Range")} />
+        </span>
+      </div>
+
       <div className="mt-4">
         <PriceChart data={price.history} />
       </div>

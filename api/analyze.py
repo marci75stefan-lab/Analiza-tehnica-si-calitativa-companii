@@ -328,6 +328,26 @@ def analyze_ticker(ticker, period=DEFAULT_PERIOD):
         change = last_close - prev_close
         change_percent = (change / prev_close * 100) if prev_close else None
 
+    last_row = hist.iloc[-1]
+    previous_close = info.get("regularMarketPreviousClose") or info.get("previousClose")
+    if previous_close is None and len(close) >= 2:
+        previous_close = float(close.iloc[-2])
+    day_open = info.get("regularMarketOpen") or info.get("open")
+    if day_open is None:
+        day_open = float(last_row["Open"])
+    day_low = info.get("regularMarketDayLow") or info.get("dayLow")
+    if day_low is None:
+        day_low = float(last_row["Low"])
+    day_high = info.get("regularMarketDayHigh") or info.get("dayHigh")
+    if day_high is None:
+        day_high = float(last_row["High"])
+    week52_low = info.get("fiftyTwoWeekLow")
+    if week52_low is None:
+        week52_low = float(hist["Low"].tail(252).min())
+    week52_high = info.get("fiftyTwoWeekHigh")
+    if week52_high is None:
+        week52_high = float(hist["High"].tail(252).max())
+
     price_history = [
         {
             "date": idx.strftime("%Y-%m-%d"),
@@ -350,6 +370,12 @@ def analyze_ticker(ticker, period=DEFAULT_PERIOD):
             "current": round(float(close.iloc[-1]), 4),
             "change": round(float(change), 4) if change is not None else None,
             "changePercent": round(float(change_percent), 2) if change_percent is not None else None,
+            "previousClose": round(float(previous_close), 4) if previous_close is not None else None,
+            "open": round(float(day_open), 4) if day_open is not None else None,
+            "dayLow": round(float(day_low), 4) if day_low is not None else None,
+            "dayHigh": round(float(day_high), 4) if day_high is not None else None,
+            "week52Low": round(float(week52_low), 4) if week52_low is not None else None,
+            "week52High": round(float(week52_high), 4) if week52_high is not None else None,
             "history": price_history,
         },
         "fundamentals": {

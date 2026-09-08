@@ -49,6 +49,31 @@ export const GLOSSARY: GlossaryTerm[] = [
       "Directia generala a pretului pe termen lung (EMA50 vs EMA200). Semnalele scurte care contrazic trendul mare sunt retrogradate la Neutru/Prudenta.",
   },
   {
+    key: "previousClose",
+    term: "Inchidere anterioara",
+    category: "tehnic",
+    definition: "Pretul de inchidere din ultima zi de tranzactionare anterioara (Previous Close).",
+  },
+  {
+    key: "open",
+    term: "Deschidere",
+    category: "tehnic",
+    definition: "Pretul la care a inceput tranzactionarea in ziua curenta (Open).",
+  },
+  {
+    key: "dayRange",
+    term: "Interval zilnic (Day's Range)",
+    category: "tehnic",
+    definition: "Cel mai mic si cel mai mare pret la care s-a tranzactionat actiunea in ziua curenta.",
+  },
+  {
+    key: "week52Range",
+    term: "Interval 52 saptamani (52 Week Range)",
+    category: "tehnic",
+    definition:
+      "Cel mai mic si cel mai mare pret de inchidere din ultimul an. Util pentru a vedea unde se situeaza pretul curent fata de extremele recente.",
+  },
+  {
     key: "YTD",
     term: "YTD (Year to Date)",
     category: "tehnic",

@@ -27,6 +27,12 @@ export interface TickerAnalysis {
     current: number;
     change: number | null;
     changePercent: number | null;
+    previousClose: number | null;
+    open: number | null;
+    dayLow: number | null;
+    dayHigh: number | null;
+    week52Low: number | null;
+    week52High: number | null;
     history: PriceHistoryPoint[];
   };
   fundamentals?: {
