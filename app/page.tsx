@@ -137,23 +137,22 @@ export default function Home() {
         </form>
 
         <div className="mt-2 flex items-center gap-1">
-          <span className="mr-1 flex items-center text-xs text-gray-400">
-            Perioada:
-            <Tooltip text={glossaryDefinition("YTD")} />
-          </span>
+          <span className="mr-1 text-xs text-gray-400">Perioada:</span>
           {PERIOD_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setPeriod(opt.value)}
-              className={`rounded px-2 py-1 text-xs font-medium ${
-                period === opt.value
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500 hover:bg-gray-100"
-              }`}
-            >
-              {opt.label}
-            </button>
+            <span key={opt.value} className="flex items-center">
+              <button
+                type="button"
+                onClick={() => setPeriod(opt.value)}
+                className={`rounded px-2 py-1 text-xs font-medium ${
+                  period === opt.value
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:bg-gray-100"
+                }`}
+              >
+                {opt.label}
+              </button>
+              {opt.value === "ytd" && <Tooltip text={glossaryDefinition("YTD")} />}
+            </span>
           ))}
         </div>
 
