@@ -21,6 +21,14 @@ MAX_TICKERS = 3
 ALLOWED_PERIODS = {"6mo", "ytd", "1y", "2y", "5y"}
 DEFAULT_PERIOD = "1y"
 
+# Bollinger's 20-day SMA is the widest rolling window among the technical
+# indicators - below this many rows RSI/Bollinger are NaN, which previously
+# fell through the scoring thresholds as a false, maximally bearish "-2"
+# instead of "no signal". Some symbols (e.g. certain indices) report a
+# valid, non-empty history from Yahoo Finance with only a handful of rows -
+# too little for a meaningful technical read.
+MIN_HISTORY_ROWS = 20
+
 # yfinance's default HTTP client (curl_cffi) can fail certificate validation
 # in some local dev setups. Fall back to a plain requests session (patched
 # by truststore above) if the default session returns no data.
@@ -344,7 +352,29 @@ def qualitative_analysis(info, fcf, wacc):
 def analyze_ticker(ticker, period=DEFAULT_PERIOD):
     tk, hist = fetch_ticker(ticker, period)
     if hist.empty:
-        return {"ticker": ticker, "error": "Ticker invalid sau fara date disponibile."}
+        # Empty history for the requested period doesn't necessarily mean an
+        # invalid ticker - some symbols (e.g. certain indices) only have a
+        # few days of history on Yahoo Finance and error out for longer
+        # periods (notably "ytd"). Retry with a short period to tell those
+        # apart from an actually-invalid/nonexistent ticker.
+        _, probe_hist = fetch_ticker(ticker, "5d")
+        if probe_hist.empty:
+            return {"ticker": ticker, "error": "Ticker invalid sau fara date disponibile."}
+        return {
+            "ticker": ticker,
+            "error": (
+                "Yahoo Finance nu are date istorice pentru perioada selectata pentru acest ticker. "
+                "Incearca o perioada mai scurta."
+            ),
+        }
+    if len(hist) < MIN_HISTORY_ROWS:
+        return {
+            "ticker": ticker,
+            "error": (
+                f"Istoric de preturi prea scurt pe Yahoo Finance ({len(hist)} zile disponibile) "
+                "pentru o analiza tehnica relevanta."
+            ),
+        }
 
     info = tk.info
     close = hist["Close"]
