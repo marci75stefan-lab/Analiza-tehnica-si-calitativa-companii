@@ -12,20 +12,20 @@ export default function Watchlist({ tickers, onSelect, onRemove }: WatchlistProp
   const { t } = useLang();
 
   if (tickers.length === 0) {
-    return <p className="text-xs text-gray-400">{t("watchlistEmpty")}</p>;
+    return <p className="text-xs text-gray-400 dark:text-gray-500">{t("watchlistEmpty")}</p>;
   }
 
   return (
     <ul className="space-y-1">
       {tickers.map((tk) => (
-        <li key={tk} className="flex items-center justify-between rounded bg-white px-2 py-1 text-sm hover:bg-indigo-50">
-          <button type="button" onClick={() => onSelect(tk)} className="text-left text-gray-800 hover:text-indigo-700 hover:underline">
+        <li key={tk} className="flex items-center justify-between rounded bg-white px-2 py-1 text-sm hover:bg-indigo-50 dark:bg-gray-900 dark:hover:bg-gray-800">
+          <button type="button" onClick={() => onSelect(tk)} className="text-left text-gray-800 hover:text-indigo-700 hover:underline dark:text-gray-200 dark:hover:text-indigo-400">
             {tk}
           </button>
           <button
             type="button"
             onClick={() => onRemove(tk)}
-            className="text-xs text-gray-400 hover:text-red-500"
+            className="text-xs text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
             aria-label={t("removeFromWatchlistAria", { ticker: tk })}
           >
             ✕

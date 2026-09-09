@@ -14,9 +14,9 @@ export default function ComparisonTable({ results }: { results: TickerAnalysis[]
   if (complete.length < 2) return null;
 
   return (
-    <div className="overflow-x-auto rounded border border-gray-200">
+    <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700">
       <table className="min-w-full text-xs">
-        <thead className="bg-indigo-50 text-left text-indigo-900">
+        <thead className="bg-indigo-50 text-left text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300">
           <tr>
             <th className="px-3 py-2">{t("tableTicker")}</th>
             <th className="px-3 py-2">{t("tablePrice")}</th>
@@ -28,7 +28,7 @@ export default function ComparisonTable({ results }: { results: TickerAnalysis[]
         </thead>
         <tbody>
           {complete.map((r) => (
-            <tr key={r.ticker} className="border-t border-gray-100">
+            <tr key={r.ticker} className="border-t border-gray-100 dark:border-gray-800">
               <td className="px-3 py-2 font-medium">{r.ticker}</td>
               <td className="px-3 py-2">
                 {formatNumber(r.price.current, lang)} {r.currency}

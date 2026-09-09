@@ -22,7 +22,7 @@ export default function Tooltip({ text }: { text: string }) {
           setOpen((o) => !o);
         }}
         aria-label={t("tooltipAria")}
-        className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-gray-300 text-[9px] leading-none text-gray-400 hover:border-indigo-400 hover:text-indigo-600"
+        className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-gray-300 text-[9px] leading-none text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:border-gray-600 dark:text-gray-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400"
       >
         ?
       </button>

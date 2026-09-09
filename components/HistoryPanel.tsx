@@ -12,7 +12,7 @@ export default function HistoryPanel({ entries, onSelect }: HistoryPanelProps) {
   const { lang, t } = useLang();
 
   if (entries.length === 0) {
-    return <p className="text-xs text-gray-400">{t("historyEmpty")}</p>;
+    return <p className="text-xs text-gray-400 dark:text-gray-500">{t("historyEmpty")}</p>;
   }
 
   return (
@@ -22,11 +22,11 @@ export default function HistoryPanel({ entries, onSelect }: HistoryPanelProps) {
           <button
             type="button"
             onClick={() => onSelect(entry)}
-            className="w-full rounded bg-white px-2 py-1 text-left text-xs hover:bg-indigo-50"
+            className="w-full rounded bg-white px-2 py-1 text-left text-xs hover:bg-indigo-50 dark:bg-gray-900 dark:hover:bg-gray-800"
           >
-            <span className="font-medium text-gray-800">{entry.tickers.join(", ")}</span>
+            <span className="font-medium text-gray-800 dark:text-gray-200">{entry.tickers.join(", ")}</span>
             <br />
-            <span className="text-gray-400">
+            <span className="text-gray-400 dark:text-gray-500">
               {new Date(entry.timestamp).toLocaleString(lang === "en" ? "en-US" : "ro-RO")}
             </span>
           </button>
