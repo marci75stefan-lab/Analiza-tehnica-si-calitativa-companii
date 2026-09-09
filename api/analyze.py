@@ -173,6 +173,55 @@ SECTOR_GROSS_MARGIN_BENCHMARKS = {
 }
 DEFAULT_GROSS_MARGIN_BENCHMARK = 0.35  # fallback for unmapped/missing sectors
 
+# Approximate long-run trailing P/E benchmarks per sector (broad, static
+# reference values, same rationale as the gross margin table above).
+SECTOR_PE_BENCHMARKS = {
+    "Technology": 28,
+    "Healthcare": 22,
+    "Communication Services": 20,
+    "Financial Services": 14,
+    "Consumer Cyclical": 22,
+    "Consumer Defensive": 20,
+    "Industrials": 20,
+    "Energy": 12,
+    "Utilities": 18,
+    "Real Estate": 35,
+    "Basic Materials": 14,
+}
+DEFAULT_PE_BENCHMARK = 20
+
+# Approximate long-run net profit margin benchmarks per sector.
+SECTOR_PROFIT_MARGIN_BENCHMARKS = {
+    "Technology": 0.20,
+    "Healthcare": 0.12,
+    "Communication Services": 0.15,
+    "Financial Services": 0.20,
+    "Consumer Cyclical": 0.08,
+    "Consumer Defensive": 0.06,
+    "Industrials": 0.08,
+    "Energy": 0.08,
+    "Utilities": 0.10,
+    "Real Estate": 0.15,
+    "Basic Materials": 0.08,
+}
+DEFAULT_PROFIT_MARGIN_BENCHMARK = 0.10
+
+# Approximate long-run ROE benchmarks per sector.
+SECTOR_ROE_BENCHMARKS = {
+    "Technology": 0.20,
+    "Healthcare": 0.15,
+    "Communication Services": 0.15,
+    "Financial Services": 0.12,
+    "Consumer Cyclical": 0.18,
+    "Consumer Defensive": 0.20,
+    "Industrials": 0.15,
+    "Energy": 0.10,
+    "Utilities": 0.10,
+    "Real Estate": 0.08,
+    "Basic Materials": 0.12,
+}
+DEFAULT_ROE_BENCHMARK = 0.15
+
 
 def compute_fcf(tk, info):
     fcf = info.get("freeCashflow")
@@ -232,12 +281,30 @@ def qualitative_analysis(info, fcf, wacc):
 
     pe = info.get("trailingPE")
     if pe is not None:
-        if pe < 15:
-            add("P/E", pe, "positive", "Posibil subevaluata (P/E scazut)")
-        elif pe > 30:
-            add("P/E", pe, "negative", "Posibil supraevaluata (P/E ridicat)")
+        sector = info.get("sector")
+        pe_benchmark = SECTOR_PE_BENCHMARKS.get(sector, DEFAULT_PE_BENCHMARK)
+        pe_sector_label = sector or "sector necunoscut"
+        if pe < pe_benchmark * 0.85:
+            add(
+                "P/E",
+                round(pe, 2),
+                "positive",
+                f"Sub media estimata pentru {pe_sector_label} (~{pe_benchmark}) - posibil subevaluata",
+            )
+        elif pe > pe_benchmark * 1.15:
+            add(
+                "P/E",
+                round(pe, 2),
+                "negative",
+                f"Peste media estimata pentru {pe_sector_label} (~{pe_benchmark}) - posibil supraevaluata",
+            )
         else:
-            add("P/E", pe, "neutral", "P/E in interval normal")
+            add(
+                "P/E",
+                round(pe, 2),
+                "neutral",
+                f"In linie cu media estimata pentru {pe_sector_label} (~{pe_benchmark})",
+            )
 
     dte = info.get("debtToEquity")
     if dte is not None:
@@ -248,10 +315,31 @@ def qualitative_analysis(info, fcf, wacc):
 
     margin = info.get("profitMargins")
     if margin is not None:
-        if margin > 0.15:
-            add("Profit margin (%)", round(margin * 100, 2), "positive", "Marja de profit solida")
+        sector = info.get("sector")
+        margin_benchmark = SECTOR_PROFIT_MARGIN_BENCHMARKS.get(sector, DEFAULT_PROFIT_MARGIN_BENCHMARK)
+        margin_benchmark_pct = round(margin_benchmark * 100, 1)
+        margin_sector_label = sector or "sector necunoscut"
+        if margin > margin_benchmark + 0.03:
+            add(
+                "Profit margin (%)",
+                round(margin * 100, 2),
+                "positive",
+                f"Peste media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%) - marja de profit solida",
+            )
+        elif margin < margin_benchmark - 0.03:
+            add(
+                "Profit margin (%)",
+                round(margin * 100, 2),
+                "negative",
+                f"Sub media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%) - marja de profit modesta",
+            )
         else:
-            add("Profit margin (%)", round(margin * 100, 2), "neutral", "Marja de profit modesta")
+            add(
+                "Profit margin (%)",
+                round(margin * 100, 2),
+                "neutral",
+                f"In linie cu media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%)",
+            )
 
     gross_margin = info.get("grossMargins")
     # yfinance reports an exact 0.0 (rather than None) for sectors where
@@ -287,10 +375,31 @@ def qualitative_analysis(info, fcf, wacc):
 
     roe = info.get("returnOnEquity")
     if roe is not None:
-        if roe > 0.15:
-            add("ROE (%)", round(roe * 100, 2), "positive", "Eficienta ridicata a capitalului propriu")
+        sector = info.get("sector")
+        roe_benchmark = SECTOR_ROE_BENCHMARKS.get(sector, DEFAULT_ROE_BENCHMARK)
+        roe_benchmark_pct = round(roe_benchmark * 100, 1)
+        roe_sector_label = sector or "sector necunoscut"
+        if roe > roe_benchmark + 0.03:
+            add(
+                "ROE (%)",
+                round(roe * 100, 2),
+                "positive",
+                f"Peste media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%) - eficienta ridicata a capitalului propriu",
+            )
+        elif roe < roe_benchmark - 0.03:
+            add(
+                "ROE (%)",
+                round(roe * 100, 2),
+                "negative",
+                f"Sub media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%) - eficienta scazuta a capitalului propriu",
+            )
         else:
-            add("ROE (%)", round(roe * 100, 2), "neutral", "Eficienta moderata a capitalului propriu")
+            add(
+                "ROE (%)",
+                round(roe * 100, 2),
+                "neutral",
+                f"In linie cu media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%)",
+            )
 
     dividend = info.get("dividendYield")
     if dividend is not None:

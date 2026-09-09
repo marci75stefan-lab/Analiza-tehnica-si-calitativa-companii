@@ -99,7 +99,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     term: "P/E (Price/Earnings)",
     category: "calitativ",
     definition:
-      "Cat platesti pe fiecare unitate de profit al companiei. Valoare mica poate insemna companie ieftina relativ la profit; valoare mare, asteptari ridicate din partea pietei.",
+      "Cat platesti pe fiecare unitate de profit al companiei, comparat cu o medie estimata a sectorului. Sub medie poate insemna companie ieftina relativ la profit; peste medie, asteptari ridicate din partea pietei. Media pe sector e o valoare de referinta statica, nu una masurata live.",
   },
   {
     key: "eps",
@@ -119,7 +119,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     term: "Profit Margin",
     category: "calitativ",
     definition:
-      "Ce procent din venituri ramane profit net dupa toate cheltuielile. Marja mare = companie eficienta.",
+      "Ce procent din venituri ramane profit net dupa toate cheltuielile, comparat cu o medie estimata a sectorului. Peste medie = companie eficienta. Media pe sector e o valoare de referinta statica, nu una masurata live.",
   },
   {
     key: "Gross Margin vs Industrie (%)",
@@ -133,7 +133,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     term: "ROE (Return on Equity)",
     category: "calitativ",
     definition:
-      "Cat profit genereaza compania pentru fiecare unitate investita de actionari, exprimat in procente. ROE mare = folosire eficienta a capitalului.",
+      "Cat profit genereaza compania pentru fiecare unitate investita de actionari, exprimat in procente, comparat cu o medie estimata a sectorului. Peste medie = folosire eficienta a capitalului. Media pe sector e o valoare de referinta statica, nu una masurata live.",
   },
   {
     key: "Dividend yield (%)",
