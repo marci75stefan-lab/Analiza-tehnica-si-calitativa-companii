@@ -14,6 +14,7 @@ import {
 } from "@/lib/localStorage";
 import type { AnalyzeResponse, TickerAnalysis } from "@/lib/types";
 import { glossaryDefinition } from "@/lib/glossary";
+import { useLang } from "@/lib/LanguageContext";
 import PriceChart from "@/components/PriceChart";
 import CompanySearch from "@/components/CompanySearch";
 import Watchlist from "@/components/Watchlist";
@@ -23,19 +24,21 @@ import Tooltip from "@/components/Tooltip";
 import Glossary from "@/components/Glossary";
 import FinancialWarnings from "@/components/FinancialWarnings";
 import MarketsBar from "@/components/MarketsBar";
+import LanguageToggle from "@/components/LanguageToggle";
 
-function formatNumber(value: number | null | undefined, digits = 2): string {
+function formatNumber(value: number | null | undefined, lang: string, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
-  return value.toLocaleString("ro-RO", { maximumFractionDigits: digits });
+  return value.toLocaleString(lang === "en" ? "en-US" : "ro-RO", { maximumFractionDigits: digits });
 }
 
-function recommendationColor(recommendation: string): string {
-  if (recommendation.includes("Cumparare")) return "text-emerald-600";
-  if (recommendation.includes("Vanzare")) return "text-rose-600";
+function recommendationColor(recommendationKey: string): string {
+  if (recommendationKey === "strong_buy" || recommendationKey === "buy") return "text-emerald-600";
+  if (recommendationKey === "strong_sell" || recommendationKey === "sell") return "text-rose-600";
   return "text-indigo-600";
 }
 
 export default function Home() {
+  const { lang, t } = useLang();
   const [input, setInput] = useState("AAPL");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +57,11 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchAnalysis(tickers, period);
+      const result = await fetchAnalysis(tickers, period, lang);
       setData(result);
       setHistory(addToHistory(tickers, result));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Eroare necunoscuta");
+      setError(err instanceof Error ? err.message : t("unknownError"));
       setData(null);
     } finally {
       setLoading(false);
@@ -69,7 +72,7 @@ export default function Home() {
     e.preventDefault();
     const tickers = input
       .split(",")
-      .map((t) => t.trim().toUpperCase())
+      .map((raw) => raw.trim().toUpperCase())
       .filter(Boolean)
       .slice(0, MAX_TICKERS);
     void runAnalysis(tickers);
@@ -98,7 +101,7 @@ export default function Home() {
     setInput((prev) => {
       const current = prev
         .split(",")
-        .map((t) => t.trim().toUpperCase())
+        .map((raw) => raw.trim().toUpperCase())
         .filter(Boolean);
       if (current.includes(symbol)) return prev;
       return [...current, symbol].slice(0, MAX_TICKERS).join(", ");
@@ -110,26 +113,23 @@ export default function Home() {
       <div>
         <MarketsBar />
 
-        <h1 className="text-2xl font-bold text-indigo-950">
-          Analiza Tehnica si Calitativa a Companiilor Listate la Bursa
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Proiect educational. Semnalele generate nu constituie recomandare de investitii.
-        </p>
-        <p className="text-xs text-gray-400">Sursa datelor: Yahoo Finance.</p>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-bold text-indigo-950">{t("appTitle")}</h1>
+          <LanguageToggle />
+        </div>
+        <p className="mt-1 text-sm text-gray-500">{t("appSubtitle")}</p>
+        <p className="text-xs text-gray-400">{t("dataSource")}</p>
 
         <div className="mt-6">
           <CompanySearch onPick={handleCompanyPick} />
-          <p className="mt-1 text-xs text-gray-400">
-            Nu stii simbolul bursier (ticker)? Cauta compania dupa nume mai sus.
-          </p>
+          <p className="mt-1 text-xs text-gray-400">{t("searchHint")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={`ex: AAPL, SNP.RO, TLV.RO (max ${MAX_TICKERS})`}
+            placeholder={t("tickerPlaceholder", { max: MAX_TICKERS })}
             className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
           />
           <button
@@ -137,12 +137,12 @@ export default function Home() {
             disabled={loading}
             className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {loading ? "Se incarca..." : "Analizeaza"}
+            {loading ? t("loading") : t("analyze")}
           </button>
         </form>
 
         <div className="mt-2 flex items-center gap-1">
-          <span className="mr-1 text-xs text-gray-400">Perioada:</span>
+          <span className="mr-1 text-xs text-gray-400">{t("periodLabel")}</span>
           {PERIOD_OPTIONS.map((opt) => (
             <span key={opt.value} className="flex items-center">
               <button
@@ -154,9 +154,9 @@ export default function Home() {
                     : "text-gray-500 hover:bg-indigo-50"
                 }`}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </button>
-              {opt.value === "ytd" && <Tooltip text={glossaryDefinition("YTD")} />}
+              {opt.value === "ytd" && <Tooltip text={glossaryDefinition("YTD", lang)} />}
             </span>
           ))}
         </div>
@@ -170,17 +170,17 @@ export default function Home() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => exportToCsv(data)}
+                  onClick={() => exportToCsv(data, lang)}
                   className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
                 >
-                  Export CSV
+                  {t("exportCsv")}
                 </button>
                 <button
                   type="button"
-                  onClick={() => exportToPdf(data)}
+                  onClick={() => exportToPdf(data, lang)}
                   className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
                 >
-                  Export PDF
+                  {t("exportPdf")}
                 </button>
               </div>
             </div>
@@ -202,22 +202,22 @@ export default function Home() {
 
       <aside className="space-y-6">
         <section className="rounded border border-gray-200 bg-gray-50/60 p-3">
-          <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">Watchlist</h2>
+          <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">{t("watchlistTitle")}</h2>
           <div className="mt-2">
-            <Watchlist tickers={watchlist} onSelect={handleWatchlistSelect} onRemove={(t) => setWatchlist(removeFromWatchlist(t))} />
+            <Watchlist tickers={watchlist} onSelect={handleWatchlistSelect} onRemove={(tk) => setWatchlist(removeFromWatchlist(tk))} />
           </div>
         </section>
 
         <section className="rounded border border-gray-200 bg-gray-50/60 p-3">
           <div className="flex items-center justify-between">
-            <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">Istoric analize</h2>
+            <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">{t("historyTitle")}</h2>
             {history.length > 0 && (
               <button
                 type="button"
                 onClick={() => setHistory(clearHistory())}
                 className="text-xs text-gray-400 hover:text-red-500"
               >
-                Sterge istoric
+                {t("clearHistory")}
               </button>
             )}
           </div>
@@ -249,11 +249,13 @@ function TickerCard({
   inWatchlist: boolean;
   onToggleWatchlist: () => void;
 }) {
+  const { lang, t } = useLang();
+
   if (result.error || !result.technical || !result.price || !result.fundamentals || !result.qualitative) {
     return (
       <div className="rounded border border-red-200 bg-red-50 p-4">
         <p className="font-medium text-red-700">{result.ticker}</p>
-        <p className="text-sm text-red-600">{result.error ?? "Date indisponibile."}</p>
+        <p className="text-sm text-red-600">{result.error ?? t("dataUnavailable")}</p>
       </div>
     );
   }
@@ -274,13 +276,13 @@ function TickerCard({
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-lg font-semibold">
-              {formatNumber(price.current)} {result.currency}
+              {formatNumber(price.current, lang)} {result.currency}
             </p>
             {price.change !== null && price.changePercent !== null && (
               <p className={`text-xs font-medium ${price.change >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                 {price.change >= 0 ? "+" : ""}
-                {formatNumber(price.change)} ({price.change >= 0 ? "+" : ""}
-                {formatNumber(price.changePercent)}%) azi
+                {formatNumber(price.change, lang)} ({price.change >= 0 ? "+" : ""}
+                {formatNumber(price.changePercent, lang)}%) {t("todaySuffix")}
               </p>
             )}
           </div>
@@ -293,27 +295,27 @@ function TickerCard({
                 : "border-gray-300 text-gray-600 hover:border-indigo-300 hover:bg-indigo-50"
             }`}
           >
-            {inWatchlist ? "In watchlist" : "+ Watchlist"}
+            {inWatchlist ? t("inWatchlist") : t("addWatchlist")}
           </button>
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 sm:grid-cols-4">
         <span className="flex items-center">
-          Inchidere anterioara: {formatNumber(price.previousClose)}
-          <Tooltip text={glossaryDefinition("previousClose")} />
+          {t("previousCloseLabel")} {formatNumber(price.previousClose, lang)}
+          <Tooltip text={glossaryDefinition("previousClose", lang)} />
         </span>
         <span className="flex items-center">
-          Deschidere: {formatNumber(price.open)}
-          <Tooltip text={glossaryDefinition("open")} />
+          {t("openLabel")} {formatNumber(price.open, lang)}
+          <Tooltip text={glossaryDefinition("open", lang)} />
         </span>
         <span className="flex items-center">
-          Interval zilnic: {formatNumber(price.dayLow)} - {formatNumber(price.dayHigh)}
-          <Tooltip text={glossaryDefinition("dayRange")} />
+          {t("dayRangeLabel")} {formatNumber(price.dayLow, lang)} - {formatNumber(price.dayHigh, lang)}
+          <Tooltip text={glossaryDefinition("dayRange", lang)} />
         </span>
         <span className="flex items-center">
-          Interval 52 saptamani: {formatNumber(price.week52Low)} - {formatNumber(price.week52High)}
-          <Tooltip text={glossaryDefinition("week52Range")} />
+          {t("week52RangeLabel")} {formatNumber(price.week52Low, lang)} - {formatNumber(price.week52High, lang)}
+          <Tooltip text={glossaryDefinition("week52Range", lang)} />
         </span>
       </div>
 
@@ -324,46 +326,47 @@ function TickerCard({
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="rounded border border-indigo-100 bg-indigo-50/60 p-4">
           <p className="flex items-center text-xs font-medium uppercase tracking-wide text-indigo-700">
-            Semnal tehnic
-            <Tooltip text={glossaryDefinition("recommendation")} />
+            {t("technicalSignalTitle")}
+            <Tooltip text={glossaryDefinition("recommendation", lang)} />
           </p>
-          <p className={`mt-1 text-xl font-bold ${recommendationColor(technical.recommendation)}`}>
+          <p className={`mt-1 text-xl font-bold ${recommendationColor(technical.recommendationKey)}`}>
             {technical.recommendation}
           </p>
           <p className="flex items-center text-xs text-gray-500">
-            Scor: {technical.score} (interval -8..+8)
-            <Tooltip text={glossaryDefinition("score")} />
-            {" "}/ trend de fond: {technical.trend}
-            <Tooltip text={glossaryDefinition("trend")} />
+            {t("scoreLabel")} {technical.score} {t("scoreInterval")}
+            <Tooltip text={glossaryDefinition("score", lang)} />
+            {" "}
+            {t("trendLabel")} {technical.trend}
+            <Tooltip text={glossaryDefinition("trend", lang)} />
           </p>
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
             <li className="flex items-center">
-              EMA cross (9/21): {technical.signals.emaCross}
-              <Tooltip text={glossaryDefinition("emaCross")} />
+              {t("emaCrossLabel")} {technical.signals.emaCross}
+              <Tooltip text={glossaryDefinition("emaCross", lang)} />
             </li>
             <li className="flex items-center">
-              RSI(14): {technical.signals.rsi} (valoare: {formatNumber(technical.indicators.rsi)})
-              <Tooltip text={glossaryDefinition("rsi")} />
+              {t("rsiLabel")} {technical.signals.rsi} {t("rsiValueSuffix", { value: formatNumber(technical.indicators.rsi, lang) })}
+              <Tooltip text={glossaryDefinition("rsi", lang)} />
             </li>
             <li className="flex items-center">
-              MACD: {technical.signals.macd}
-              <Tooltip text={glossaryDefinition("macd")} />
+              {t("macdLabel")} {technical.signals.macd}
+              <Tooltip text={glossaryDefinition("macd", lang)} />
             </li>
             <li className="flex items-center">
-              Bollinger Bands: {technical.signals.bollinger}
-              <Tooltip text={glossaryDefinition("bollinger")} />
+              {t("bollingerLabel")} {technical.signals.bollinger}
+              <Tooltip text={glossaryDefinition("bollinger", lang)} />
             </li>
           </ul>
         </div>
 
         <div className="rounded border border-sky-100 bg-sky-50/60 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-sky-700">Analiza calitativa</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-sky-700">{t("qualitativeAnalysisTitle")}</p>
           <p className="mt-1 text-sm font-medium text-gray-900">{qualitative.verdict}</p>
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
             {qualitative.signals.map((s) => (
-              <li key={s.metric} className="flex items-center">
-                {s.metric}: {formatNumber(s.value)} - {s.note}
-                <Tooltip text={glossaryDefinition(s.metric)} />
+              <li key={s.metricId} className="flex items-center">
+                {s.metric}: {formatNumber(s.value, lang)} - {s.note}
+                <Tooltip text={glossaryDefinition(s.metric, lang)} />
               </li>
             ))}
           </ul>
@@ -372,21 +375,21 @@ function TickerCard({
 
       <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500 sm:grid-cols-4">
         <span className="flex items-center">
-          P/E: {formatNumber(fundamentals.trailingPE)}
-          <Tooltip text={glossaryDefinition("P/E")} />
+          {t("peLabel")} {formatNumber(fundamentals.trailingPE, lang)}
+          <Tooltip text={glossaryDefinition("P/E", lang)} />
         </span>
         <span className="flex items-center">
-          EPS: {formatNumber(fundamentals.trailingEps)}
-          <Tooltip text={glossaryDefinition("eps")} />
+          {t("epsLabel")} {formatNumber(fundamentals.trailingEps, lang)}
+          <Tooltip text={glossaryDefinition("eps", lang)} />
         </span>
         <span className="flex items-center">
-          Debt/Equity: {formatNumber(fundamentals.debtToEquity)}
+          {t("dteLabel")} {formatNumber(fundamentals.debtToEquity, lang)}
           {fundamentals.debtToEquity !== null ? "%" : ""}
-          <Tooltip text={glossaryDefinition("Debt/Equity (%)")} />
+          <Tooltip text={glossaryDefinition("Debt/Equity (%)", lang)} />
         </span>
         <span className="flex items-center">
-          ROE: {fundamentals.returnOnEquity !== null ? `${formatNumber(fundamentals.returnOnEquity * 100)}%` : "N/A"}
-          <Tooltip text={glossaryDefinition("ROE (%)")} />
+          {t("roeLabel")} {fundamentals.returnOnEquity !== null ? `${formatNumber(fundamentals.returnOnEquity * 100, lang)}%` : "N/A"}
+          <Tooltip text={glossaryDefinition("ROE (%)", lang)} />
         </span>
       </div>
 

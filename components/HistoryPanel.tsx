@@ -1,6 +1,7 @@
 "use client";
 
 import type { HistoryEntry } from "@/lib/localStorage";
+import { useLang } from "@/lib/LanguageContext";
 
 interface HistoryPanelProps {
   entries: HistoryEntry[];
@@ -8,8 +9,10 @@ interface HistoryPanelProps {
 }
 
 export default function HistoryPanel({ entries, onSelect }: HistoryPanelProps) {
+  const { lang, t } = useLang();
+
   if (entries.length === 0) {
-    return <p className="text-xs text-gray-400">Nicio analiza salvata inca.</p>;
+    return <p className="text-xs text-gray-400">{t("historyEmpty")}</p>;
   }
 
   return (
@@ -23,7 +26,9 @@ export default function HistoryPanel({ entries, onSelect }: HistoryPanelProps) {
           >
             <span className="font-medium text-gray-800">{entry.tickers.join(", ")}</span>
             <br />
-            <span className="text-gray-400">{new Date(entry.timestamp).toLocaleString("ro-RO")}</span>
+            <span className="text-gray-400">
+              {new Date(entry.timestamp).toLocaleString(lang === "en" ? "en-US" : "ro-RO")}
+            </span>
           </button>
         </li>
       ))}

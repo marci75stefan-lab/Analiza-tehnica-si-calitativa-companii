@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { searchTickers } from "@/lib/api";
 import type { SearchResult } from "@/lib/types";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function CompanySearch({ onPick }: { onPick: (symbol: string) => void }) {
+  const { t } = useLang();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -55,14 +57,14 @@ export default function CompanySearch({ onPick }: { onPick: (symbol: string) => 
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
-        placeholder="Cauta dupa numele companiei (ex: Apple, Banca Transilvania)"
+        placeholder={t("searchPlaceholder")}
         className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
       />
       {open && (
         <div className="absolute z-30 mt-1 w-full rounded border border-gray-200 bg-white shadow-lg">
-          {loading && <p className="px-3 py-2 text-xs text-gray-400">Se cauta...</p>}
+          {loading && <p className="px-3 py-2 text-xs text-gray-400">{t("searchingLabel")}</p>}
           {!loading && results.length === 0 && (
-            <p className="px-3 py-2 text-xs text-gray-400">Niciun rezultat.</p>
+            <p className="px-3 py-2 text-xs text-gray-400">{t("noResultsLabel")}</p>
           )}
           {!loading &&
             results.map((r) => (

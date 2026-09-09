@@ -10,6 +10,7 @@ export interface PriceHistoryPoint {
 export type Sentiment = "positive" | "negative" | "neutral";
 
 export interface QualitativeSignal {
+  metricId: string;
   metric: string;
   value: number;
   sentiment: Sentiment;
@@ -55,6 +56,7 @@ export interface TickerAnalysis {
     };
     indicators: Record<string, number | null>;
     score: number;
+    recommendationKey: string;
     recommendation: string;
   };
   qualitative?: {

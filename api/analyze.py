@@ -10,12 +10,9 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
-app = Flask(__name__)
+from i18n import DEFAULT_LANG, resolve_lang, t
 
-DISCLAIMER = (
-    "Semnal generat algoritmic in scop educational. "
-    "Nu constituie recomandare de investitii."
-)
+app = Flask(__name__)
 
 MAX_TICKERS = 3
 ALLOWED_PERIODS = {"6mo", "ytd", "1y", "2y", "5y"}
@@ -132,19 +129,23 @@ def score_bollinger(close_value, sma_value, upper_value, lower_value):
     return -2
 
 
-def map_score_to_recommendation(score, trend):
+def map_score_to_recommendation(score, trend, lang):
+    # recommendationKey is a stable, language-independent identifier - the
+    # frontend colors/matches on this, never on the translated label text.
     contra_trend = (trend == "bullish" and score < 0) or (trend == "bearish" and score > 0)
     if contra_trend:
-        return "Neutru / Prudenta (contra-trend)"
-    if score >= 5:
-        return "Cumparare puternica"
-    if score >= 2:
-        return "Cumparare"
-    if score >= -1:
-        return "Neutru"
-    if score >= -4:
-        return "Vanzare"
-    return "Vanzare puternica"
+        key = "contra_trend"
+    elif score >= 5:
+        key = "strong_buy"
+    elif score >= 2:
+        key = "buy"
+    elif score >= -1:
+        key = "neutral"
+    elif score >= -4:
+        key = "sell"
+    else:
+        key = "strong_sell"
+    return key, t(f"rec_{key}", lang)
 
 
 # WACC assumptions (no live market-rate feed - keeps the app free and fast).
@@ -273,72 +274,73 @@ def compute_wacc(tk, info):
     return equity_weight * cost_of_equity + debt_weight * cost_of_debt * (1 - tax_rate)
 
 
-def qualitative_analysis(info, fcf, wacc):
+def qualitative_analysis(info, fcf, wacc, lang):
     signals = []
 
-    def add(metric, value, sentiment, note):
-        signals.append({"metric": metric, "value": value, "sentiment": sentiment, "note": note})
+    def add(metric_key, value, sentiment, note_key, **fmt):
+        signals.append(
+            {
+                "metricId": metric_key,
+                "metric": t(f"metric_{metric_key}", lang),
+                "value": value,
+                "sentiment": sentiment,
+                "note": t(note_key, lang, **fmt),
+            }
+        )
+
+    sector_unknown = t("sector_unknown", lang)
 
     pe = info.get("trailingPE")
     if pe is not None:
         sector = info.get("sector")
         pe_benchmark = SECTOR_PE_BENCHMARKS.get(sector, DEFAULT_PE_BENCHMARK)
-        pe_sector_label = sector or "sector necunoscut"
+        pe_sector_label = sector or sector_unknown
         if pe < pe_benchmark * 0.85:
-            add(
-                "P/E",
-                round(pe, 2),
-                "positive",
-                f"Sub media estimata pentru {pe_sector_label} (~{pe_benchmark}) - posibil subevaluata",
-            )
+            add("pe", round(pe, 2), "positive", "pe_below", sector=pe_sector_label, benchmark=pe_benchmark)
         elif pe > pe_benchmark * 1.15:
-            add(
-                "P/E",
-                round(pe, 2),
-                "negative",
-                f"Peste media estimata pentru {pe_sector_label} (~{pe_benchmark}) - posibil supraevaluata",
-            )
+            add("pe", round(pe, 2), "negative", "pe_above", sector=pe_sector_label, benchmark=pe_benchmark)
         else:
-            add(
-                "P/E",
-                round(pe, 2),
-                "neutral",
-                f"In linie cu media estimata pentru {pe_sector_label} (~{pe_benchmark})",
-            )
+            add("pe", round(pe, 2), "neutral", "pe_neutral", sector=pe_sector_label, benchmark=pe_benchmark)
 
     dte = info.get("debtToEquity")
     if dte is not None:
         if dte > 100:
-            add("Debt/Equity (%)", round(dte, 2), "negative", "Grad de indatorare ridicat (risc financiar)")
+            add("dte", round(dte, 2), "negative", "dte_high")
         else:
-            add("Debt/Equity (%)", round(dte, 2), "positive", "Grad de indatorare rezonabil")
+            add("dte", round(dte, 2), "positive", "dte_ok")
 
     margin = info.get("profitMargins")
     if margin is not None:
         sector = info.get("sector")
         margin_benchmark = SECTOR_PROFIT_MARGIN_BENCHMARKS.get(sector, DEFAULT_PROFIT_MARGIN_BENCHMARK)
         margin_benchmark_pct = round(margin_benchmark * 100, 1)
-        margin_sector_label = sector or "sector necunoscut"
+        margin_sector_label = sector or sector_unknown
         if margin > margin_benchmark + 0.03:
             add(
-                "Profit margin (%)",
+                "margin",
                 round(margin * 100, 2),
                 "positive",
-                f"Peste media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%) - marja de profit solida",
+                "margin_above",
+                sector=margin_sector_label,
+                benchmark=margin_benchmark_pct,
             )
         elif margin < margin_benchmark - 0.03:
             add(
-                "Profit margin (%)",
+                "margin",
                 round(margin * 100, 2),
                 "negative",
-                f"Sub media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%) - marja de profit modesta",
+                "margin_below",
+                sector=margin_sector_label,
+                benchmark=margin_benchmark_pct,
             )
         else:
             add(
-                "Profit margin (%)",
+                "margin",
                 round(margin * 100, 2),
                 "neutral",
-                f"In linie cu media estimata pentru {margin_sector_label} (~{margin_benchmark_pct}%)",
+                "margin_neutral",
+                sector=margin_sector_label,
+                benchmark=margin_benchmark_pct,
             )
 
     gross_margin = info.get("grossMargins")
@@ -350,27 +352,33 @@ def qualitative_analysis(info, fcf, wacc):
         benchmark = SECTOR_GROSS_MARGIN_BENCHMARKS.get(sector, DEFAULT_GROSS_MARGIN_BENCHMARK)
         gross_margin_pct = round(gross_margin * 100, 2)
         benchmark_pct = round(benchmark * 100, 1)
-        sector_label = sector or "sector necunoscut"
+        sector_label = sector or sector_unknown
         if gross_margin > benchmark + 0.03:
             add(
-                "Gross Margin vs Industrie (%)",
+                "grossmargin",
                 gross_margin_pct,
                 "positive",
-                f"Peste media estimata pentru {sector_label} (~{benchmark_pct}%) - avantaj competitiv sau putere de pricing",
+                "grossmargin_above",
+                sector=sector_label,
+                benchmark=benchmark_pct,
             )
         elif gross_margin < benchmark - 0.03:
             add(
-                "Gross Margin vs Industrie (%)",
+                "grossmargin",
                 gross_margin_pct,
                 "negative",
-                f"Sub media estimata pentru {sector_label} (~{benchmark_pct}%) - marje mai subtiri decat concurenta",
+                "grossmargin_below",
+                sector=sector_label,
+                benchmark=benchmark_pct,
             )
         else:
             add(
-                "Gross Margin vs Industrie (%)",
+                "grossmargin",
                 gross_margin_pct,
                 "neutral",
-                f"In linie cu media estimata pentru {sector_label} (~{benchmark_pct}%)",
+                "grossmargin_neutral",
+                sector=sector_label,
+                benchmark=benchmark_pct,
             )
 
     roe = info.get("returnOnEquity")
@@ -378,87 +386,73 @@ def qualitative_analysis(info, fcf, wacc):
         sector = info.get("sector")
         roe_benchmark = SECTOR_ROE_BENCHMARKS.get(sector, DEFAULT_ROE_BENCHMARK)
         roe_benchmark_pct = round(roe_benchmark * 100, 1)
-        roe_sector_label = sector or "sector necunoscut"
+        roe_sector_label = sector or sector_unknown
         if roe > roe_benchmark + 0.03:
             add(
-                "ROE (%)",
+                "roe",
                 round(roe * 100, 2),
                 "positive",
-                f"Peste media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%) - eficienta ridicata a capitalului propriu",
+                "roe_above",
+                sector=roe_sector_label,
+                benchmark=roe_benchmark_pct,
             )
         elif roe < roe_benchmark - 0.03:
             add(
-                "ROE (%)",
+                "roe",
                 round(roe * 100, 2),
                 "negative",
-                f"Sub media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%) - eficienta scazuta a capitalului propriu",
+                "roe_below",
+                sector=roe_sector_label,
+                benchmark=roe_benchmark_pct,
             )
         else:
             add(
-                "ROE (%)",
+                "roe",
                 round(roe * 100, 2),
                 "neutral",
-                f"In linie cu media estimata pentru {roe_sector_label} (~{roe_benchmark_pct}%)",
+                "roe_neutral",
+                sector=roe_sector_label,
+                benchmark=roe_benchmark_pct,
             )
 
     dividend = info.get("dividendYield")
     if dividend is not None:
-        add("Dividend yield (%)", round(dividend, 2), "neutral", "Relevant pentru investitori orientati spre venit")
+        add("dividend", round(dividend, 2), "neutral", "dividend_note")
 
     if fcf is not None:
         if fcf > 0:
-            add(
-                "FCF (mil.)",
-                round(fcf / 1_000_000, 1),
-                "positive",
-                "Cash flow liber pozitiv - genereaza mai mult cash din operare decat investeste in capex",
-            )
+            add("fcf", round(fcf / 1_000_000, 1), "positive", "fcf_positive")
         else:
-            add(
-                "FCF (mil.)",
-                round(fcf / 1_000_000, 1),
-                "negative",
-                "Cash flow liber negativ - consuma cash net (poate fi normal in faza de investitii intensive)",
-            )
+            add("fcf", round(fcf / 1_000_000, 1), "negative", "fcf_negative")
 
     if wacc is not None:
         roe = info.get("returnOnEquity")
         wacc_pct = round(wacc * 100, 2)
         if roe is not None:
             if roe > wacc:
-                add(
-                    "WACC (%)",
-                    wacc_pct,
-                    "positive",
-                    f"ROE ({roe * 100:.1f}%) depaseste WACC - compania creeaza valoare peste costul capitalului",
-                )
+                add("wacc", wacc_pct, "positive", "wacc_above", roe=roe * 100)
             else:
-                add(
-                    "WACC (%)",
-                    wacc_pct,
-                    "negative",
-                    f"ROE ({roe * 100:.1f}%) sub WACC - randamentul nu acopera costul capitalului",
-                )
+                add("wacc", wacc_pct, "negative", "wacc_below", roe=roe * 100)
         else:
-            add("WACC (%)", wacc_pct, "neutral", "Cost mediu ponderat al capitalului (estimat, ipoteze simplificate)")
+            add("wacc", wacc_pct, "neutral", "wacc_neutral")
 
     positive = sum(1 for s in signals if s["sentiment"] == "positive")
     negative = sum(1 for s in signals if s["sentiment"] == "negative")
     total = len(signals)
 
     if total == 0:
-        verdict = "Date fundamentale insuficiente pentru un verdict."
+        verdict = t("verdict_insufficient", lang)
     elif positive > negative:
-        verdict = f"{positive} din {total} semnale pozitive - profil fundamental favorabil."
+        verdict = t("verdict_positive", lang, count=positive, total=total)
     elif negative > positive:
-        verdict = f"{negative} din {total} semnale negative - profil fundamental cu riscuri."
+        verdict = t("verdict_negative", lang, count=negative, total=total)
     else:
-        verdict = "Semnale mixte - profil fundamental neutru."
+        verdict = t("verdict_mixed", lang)
 
     return {"signals": signals, "verdict": verdict}
 
 
-def analyze_ticker(ticker, period=DEFAULT_PERIOD):
+def analyze_ticker(ticker, period=DEFAULT_PERIOD, lang=DEFAULT_LANG):
     tk, hist = fetch_ticker(ticker, period)
     if hist.empty:
         # Empty history for the requested period doesn't necessarily mean an
@@ -468,22 +462,10 @@ def analyze_ticker(ticker, period=DEFAULT_PERIOD):
         # apart from an actually-invalid/nonexistent ticker.
         _, probe_hist = fetch_ticker(ticker, "5d")
         if probe_hist.empty:
-            return {"ticker": ticker, "error": "Ticker invalid sau fara date disponibile."}
-        return {
-            "ticker": ticker,
-            "error": (
-                "Yahoo Finance nu are date istorice pentru perioada selectata pentru acest ticker. "
-                "Incearca o perioada mai scurta."
-            ),
-        }
+            return {"ticker": ticker, "error": t("error_invalid_ticker", lang)}
+        return {"ticker": ticker, "error": t("error_no_data_period", lang)}
     if len(hist) < MIN_HISTORY_ROWS:
-        return {
-            "ticker": ticker,
-            "error": (
-                f"Istoric de preturi prea scurt pe Yahoo Finance ({len(hist)} zile disponibile) "
-                "pentru o analiza tehnica relevanta."
-            ),
-        }
+        return {"ticker": ticker, "error": t("error_history_short", lang, rows=len(hist))}
 
     info = tk.info
     close = hist["Close"]
@@ -504,7 +486,7 @@ def analyze_ticker(ticker, period=DEFAULT_PERIOD):
     s_boll = score_bollinger(close.iloc[-1], sma20.iloc[-1], upper.iloc[-1], lower.iloc[-1])
 
     total_score = s_ema + s_rsi + s_macd + s_boll
-    recommendation = map_score_to_recommendation(total_score, trend)
+    recommendation_key, recommendation = map_score_to_recommendation(total_score, trend, lang)
 
     fcf = compute_fcf(tk, info)
     wacc = compute_wacc(tk, info)
@@ -597,28 +579,30 @@ def analyze_ticker(ticker, period=DEFAULT_PERIOD):
                 "bollingerLower": round(float(lower.iloc[-1]), 4),
             },
             "score": total_score,
+            "recommendationKey": recommendation_key,
             "recommendation": recommendation,
         },
-        "qualitative": qualitative_analysis(info, fcf, wacc),
+        "qualitative": qualitative_analysis(info, fcf, wacc, lang),
     }
 
 
 @app.route("/api/analyze", methods=["GET"])
 def analyze():
     tickers_param = request.args.get("tickers", "")
-    tickers = [t.strip().upper() for t in tickers_param.split(",") if t.strip()]
+    tickers = [raw.strip().upper() for raw in tickers_param.split(",") if raw.strip()]
     period = request.args.get("period", DEFAULT_PERIOD)
     if period not in ALLOWED_PERIODS:
         period = DEFAULT_PERIOD
+    lang = resolve_lang(request.args.get("lang", DEFAULT_LANG))
 
     if not tickers:
-        return jsonify({"error": "Parametrul 'tickers' este obligatoriu."}), 400
+        return jsonify({"error": t("error_missing_tickers", lang)}), 400
     if len(tickers) > MAX_TICKERS:
-        return jsonify({"error": f"Maxim {MAX_TICKERS} tickere per comparatie."}), 400
+        return jsonify({"error": t("error_too_many_tickers", lang, max=MAX_TICKERS)}), 400
 
-    results = [analyze_ticker(t, period) for t in tickers]
+    results = [analyze_ticker(ticker, period, lang) for ticker in tickers]
 
-    return jsonify({"disclaimer": DISCLAIMER, "results": results})
+    return jsonify({"disclaimer": t("disclaimer", lang), "results": results})
 
 
 if __name__ == "__main__":

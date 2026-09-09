@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function Tooltip({ text }: { text: string }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
 
   if (!text) return null;
@@ -19,7 +21,7 @@ export default function Tooltip({ text }: { text: string }) {
           e.preventDefault();
           setOpen((o) => !o);
         }}
-        aria-label="Detalii termen"
+        aria-label={t("tooltipAria")}
         className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-gray-300 text-[9px] leading-none text-gray-400 hover:border-indigo-400 hover:text-indigo-600"
       >
         ?

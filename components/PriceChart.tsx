@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ColorType, createChart, type IChartApi } from "lightweight-charts";
 import type { PriceHistoryPoint } from "@/lib/types";
+import { useLang } from "@/lib/LanguageContext";
 
 type Mode = "price" | "percent";
 
 export default function PriceChart({ data }: { data: PriceHistoryPoint[] }) {
+  const { t } = useLang();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [mode, setMode] = useState<Mode>("price");
@@ -75,7 +77,7 @@ export default function PriceChart({ data }: { data: PriceHistoryPoint[] }) {
             mode === "price" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
           }`}
         >
-          Pret
+          {t("priceChartPrice")}
         </button>
         <button
           type="button"

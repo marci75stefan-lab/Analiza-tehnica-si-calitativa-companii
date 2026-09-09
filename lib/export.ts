@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { isCompleteAnalysis, type AnalyzeResponse } from "./types";
+import { t, localeFor, type Lang } from "./i18n";
 
 function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -21,22 +22,22 @@ function dateStamp(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function exportToCsv(response: AnalyzeResponse): void {
+export function exportToCsv(response: AnalyzeResponse, lang: Lang = "ro"): void {
   const headers = [
-    "Ticker",
-    "Companie",
-    "Pret curent",
-    "Moneda",
-    "Scor tehnic",
-    "Trend",
-    "Recomandare",
-    "P/E",
-    "EPS",
-    "Debt/Equity",
-    "Profit Margin",
-    "ROE",
-    "Dividend Yield",
-    "Verdict calitativ",
+    t(lang, "csvHeaderTicker"),
+    t(lang, "csvHeaderCompany"),
+    t(lang, "csvHeaderPrice"),
+    t(lang, "csvHeaderCurrency"),
+    t(lang, "csvHeaderTechScore"),
+    t(lang, "csvHeaderTrend"),
+    t(lang, "csvHeaderRecommendation"),
+    t(lang, "csvHeaderPE"),
+    t(lang, "csvHeaderEPS"),
+    t(lang, "csvHeaderDTE"),
+    t(lang, "csvHeaderMargin"),
+    t(lang, "csvHeaderROE"),
+    t(lang, "csvHeaderDividend"),
+    t(lang, "csvHeaderVerdict"),
   ];
 
   const rows = response.results.filter(isCompleteAnalysis).map((r) => [
@@ -61,18 +62,18 @@ export function exportToCsv(response: AnalyzeResponse): void {
   triggerDownload(blob, `analiza-${dateStamp()}.csv`);
 }
 
-export function exportToPdf(response: AnalyzeResponse): void {
+export function exportToPdf(response: AnalyzeResponse, lang: Lang = "ro"): void {
   const doc = new jsPDF();
   const marginX = 14;
   const pageBottom = 275;
   let y = 15;
 
   doc.setFontSize(14);
-  doc.text("Analiza Tehnica si Calitativa a Companiilor Listate la Bursa", marginX, y);
+  doc.text(t(lang, "appTitle"), marginX, y);
   y += 7;
   doc.setFontSize(9);
   doc.setTextColor(120);
-  doc.text(new Date().toLocaleString("ro-RO"), marginX, y);
+  doc.text(new Date().toLocaleString(localeFor(lang)), marginX, y);
   doc.setTextColor(0);
   y += 10;
 
@@ -85,16 +86,19 @@ export function exportToPdf(response: AnalyzeResponse): void {
     doc.text(`${r.companyName} (${r.ticker})`, marginX, y);
     y += 6;
     doc.setFontSize(9);
-    doc.text(`Pret curent: ${r.price.current} ${r.currency}`, marginX, y);
+    doc.text(`${t(lang, "pdfPriceCurrent")} ${r.price.current} ${r.currency}`, marginX, y);
     y += 5;
     doc.text(
-      `Semnal tehnic: ${r.technical.recommendation} (scor ${r.technical.score}, trend ${r.technical.trend})`,
+      `${t(lang, "pdfTechnicalSignal")} ${r.technical.recommendation} ${t(lang, "pdfScoreTrend", {
+        score: r.technical.score,
+        trend: r.technical.trend,
+      })}`,
       marginX,
       y
     );
     y += 5;
     doc.text(
-      doc.splitTextToSize(`Verdict calitativ: ${r.qualitative.verdict}`, 180),
+      doc.splitTextToSize(`${t(lang, "pdfVerdict")} ${r.qualitative.verdict}`, 180),
       marginX,
       y
     );

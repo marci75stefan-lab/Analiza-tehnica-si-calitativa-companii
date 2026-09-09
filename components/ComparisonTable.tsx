@@ -1,11 +1,15 @@
-import { isCompleteAnalysis, type TickerAnalysis } from "@/lib/types";
+"use client";
 
-function formatNumber(value: number | null | undefined, digits = 2): string {
+import { isCompleteAnalysis, type TickerAnalysis } from "@/lib/types";
+import { useLang } from "@/lib/LanguageContext";
+
+function formatNumber(value: number | null | undefined, lang: string, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
-  return value.toLocaleString("ro-RO", { maximumFractionDigits: digits });
+  return value.toLocaleString(lang === "en" ? "en-US" : "ro-RO", { maximumFractionDigits: digits });
 }
 
 export default function ComparisonTable({ results }: { results: TickerAnalysis[] }) {
+  const { lang, t } = useLang();
   const complete = results.filter(isCompleteAnalysis);
   if (complete.length < 2) return null;
 
@@ -14,12 +18,12 @@ export default function ComparisonTable({ results }: { results: TickerAnalysis[]
       <table className="min-w-full text-xs">
         <thead className="bg-indigo-50 text-left text-indigo-900">
           <tr>
-            <th className="px-3 py-2">Ticker</th>
-            <th className="px-3 py-2">Pret</th>
-            <th className="px-3 py-2">Scor tehnic</th>
-            <th className="px-3 py-2">Recomandare</th>
-            <th className="px-3 py-2">P/E</th>
-            <th className="px-3 py-2">Verdict calitativ</th>
+            <th className="px-3 py-2">{t("tableTicker")}</th>
+            <th className="px-3 py-2">{t("tablePrice")}</th>
+            <th className="px-3 py-2">{t("tableTechScore")}</th>
+            <th className="px-3 py-2">{t("tableRecommendation")}</th>
+            <th className="px-3 py-2">{t("tablePE")}</th>
+            <th className="px-3 py-2">{t("tableVerdict")}</th>
           </tr>
         </thead>
         <tbody>
@@ -27,11 +31,11 @@ export default function ComparisonTable({ results }: { results: TickerAnalysis[]
             <tr key={r.ticker} className="border-t border-gray-100">
               <td className="px-3 py-2 font-medium">{r.ticker}</td>
               <td className="px-3 py-2">
-                {formatNumber(r.price.current)} {r.currency}
+                {formatNumber(r.price.current, lang)} {r.currency}
               </td>
               <td className="px-3 py-2">{r.technical.score}</td>
               <td className="px-3 py-2">{r.technical.recommendation}</td>
-              <td className="px-3 py-2">{formatNumber(r.fundamentals.trailingPE)}</td>
+              <td className="px-3 py-2">{formatNumber(r.fundamentals.trailingPE, lang)}</td>
               <td className="px-3 py-2">{r.qualitative.verdict}</td>
             </tr>
           ))}
