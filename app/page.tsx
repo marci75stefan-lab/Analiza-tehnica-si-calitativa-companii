@@ -40,7 +40,7 @@ function recommendationColor(recommendationKey: string): string {
 
 export default function Home() {
   const { lang, t } = useLang();
-  const [input, setInput] = useState("AAPL");
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalyzeResponse | null>(null);
