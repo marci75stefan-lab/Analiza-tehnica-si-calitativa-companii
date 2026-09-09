@@ -20,6 +20,7 @@ import HistoryPanel from "@/components/HistoryPanel";
 import ComparisonTable from "@/components/ComparisonTable";
 import Tooltip from "@/components/Tooltip";
 import Glossary from "@/components/Glossary";
+import FinancialWarnings from "@/components/FinancialWarnings";
 import MarketsBar from "@/components/MarketsBar";
 
 function formatNumber(value: number | null | undefined, digits = 2): string {
@@ -215,6 +216,10 @@ export default function Home() {
 
         <section>
           <Glossary />
+        </section>
+
+        <section>
+          <FinancialWarnings />
         </section>
       </aside>
     </main>
