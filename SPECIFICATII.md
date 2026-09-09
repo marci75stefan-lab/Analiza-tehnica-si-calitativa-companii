@@ -15,9 +15,8 @@ Proiect educațional realizat în cadrul unui curs de vibecoding. Aplicație web
 - **Persistență:** fără bază de date — toată persistența se face client-side, în `localStorage` al browserului
 - **Repo & deploy:** cod pe **GitHub**, conectat la **Vercel** pentru auto-deploy gratuit la fiecare push (un singur URL live)
 
-### Risc tehnic de validat în implementare
-Funcțiile serverless Python pe Vercel au o limită de dimensiune (~250MB incluzând dependințele). `pandas` + `numpy` + `yfinance` ar trebui să se încadreze, dar trebuie testat din primii pași de implementare.
-**Fallback gratuit** dacă nu se încadrează: backend găzduit pe Render (free tier), cu mențiunea că adoarme după 15 min de inactivitate.
+### Risc tehnic — validat
+Funcțiile serverless Python pe Vercel au o limită de dimensiune (~250MB incluzând dependințele). `pandas` + `numpy` + `yfinance` se încadrează fără probleme — **confirmat cu un deploy live** pe planul gratuit (Hobby): homepage, `/api/analyze` și `/api/markets` răspund cu `200` și date reale. Fallback-ul pe Render nu mai e necesar.
 
 ---
 
@@ -138,8 +137,9 @@ Inclus ca **field explicit în răspunsul API** (nu doar text în UI, pentru a n
 
 ## Status
 
-MVP-ul de bază și toate funcționalitățile suplimentare din acest document sunt **implementate și testate local**: analiză tehnică + calitativă completă (inclusiv comparațiile "vs. sector"), watchlist, comparație, istoric, export, căutare, glosar, bara Markets, secțiunea de recomandări financiare. Layout-ul e testat și confirmat responsive (375px și 320px, fără overflow orizontal).
+MVP-ul de bază și toate funcționalitățile suplimentare din acest document sunt **implementate, testate local și live pe Vercel**: analiză tehnică + calitativă completă (inclusiv comparațiile "vs. sector"), watchlist, comparație, istoric, export, căutare, glosar, bara Markets, secțiunea de recomandări financiare. Layout-ul e testat și confirmat responsive (375px și 320px, fără overflow orizontal).
+
+**Deploy live:** `https://analiza-tehnica-si-calitativa-compa.vercel.app/` — plan Vercel Hobby (gratuit), auto-deploy la fiecare push pe `main`. Testat direct: homepage, `/api/analyze` și `/api/markets` răspund `200` cu date reale.
 
 Rămas de făcut / de verificat:
-- **Deploy pe Vercel** — riscul tehnic legat de dimensiunea funcțiilor serverless Python (`pandas`+`numpy`+`yfinance`, secțiunea "Risc tehnic" de mai sus) nu a fost încă validat cu un build live pe Vercel.
 - **`TLV.RO` / `SNG.RO`** — folosesc aceeași sursă de date ca `SNP.RO` (testat), dar n-au fost re-verificate individual.
