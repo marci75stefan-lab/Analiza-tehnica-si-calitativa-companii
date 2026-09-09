@@ -6,6 +6,7 @@ import { exportToCsv, exportToPdf } from "@/lib/export";
 import {
   addToHistory,
   addToWatchlist,
+  clearHistory,
   getHistory,
   getWatchlist,
   removeFromWatchlist,
@@ -208,7 +209,18 @@ export default function Home() {
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-gray-900">Istoric analize</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-900">Istoric analize</h2>
+            {history.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setHistory(clearHistory())}
+                className="text-xs text-gray-400 hover:text-red-500"
+              >
+                Sterge istoric
+              </button>
+            )}
+          </div>
           <div className="mt-2">
             <HistoryPanel entries={history} onSelect={handleHistorySelect} />
           </div>

@@ -57,3 +57,8 @@ export function addToHistory(tickers: string[], response: AnalyzeResponse): Hist
   writeJson(HISTORY_KEY, updated);
   return updated;
 }
+
+export function clearHistory(): HistoryEntry[] {
+  writeJson(HISTORY_KEY, []);
+  return [];
+}
