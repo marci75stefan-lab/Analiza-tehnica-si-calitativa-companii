@@ -15,6 +15,10 @@ const nextConfig = {
           source: "/api/search",
           destination: "http://127.0.0.1:5329/api/search",
         },
+        {
+          source: "/api/markets",
+          destination: "http://127.0.0.1:5330/api/markets",
+        },
       ];
     }
     return [];

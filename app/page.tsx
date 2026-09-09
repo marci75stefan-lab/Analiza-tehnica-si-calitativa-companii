@@ -20,6 +20,7 @@ import HistoryPanel from "@/components/HistoryPanel";
 import ComparisonTable from "@/components/ComparisonTable";
 import Tooltip from "@/components/Tooltip";
 import Glossary from "@/components/Glossary";
+import MarketsBar from "@/components/MarketsBar";
 
 function formatNumber(value: number | null | undefined, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
@@ -105,6 +106,8 @@ export default function Home() {
   return (
     <main className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_260px]">
       <div>
+        <MarketsBar />
+
         <h1 className="text-2xl font-bold text-gray-900">
           Analiza Tehnica si Calitativa a Companiilor Listate la Bursa
         </h1>
