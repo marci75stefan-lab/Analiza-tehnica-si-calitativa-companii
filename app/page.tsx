@@ -53,6 +53,17 @@ export default function Home() {
     setHistory(getHistory());
   }, []);
 
+  // Switching language only re-translates the static UI immediately -
+  // already-fetched analysis content (verdict, signals, recommendation)
+  // came from the backend in the previous language and would otherwise
+  // stay stale, mixing languages within the same card. Re-run the last
+  // analysis in the new language when there's something on screen already.
+  useEffect(() => {
+    if (!data) return;
+    void runAnalysis(data.results.map((r) => r.ticker));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
+
   async function runAnalysis(tickers: string[]) {
     if (tickers.length === 0) return;
     setLoading(true);
