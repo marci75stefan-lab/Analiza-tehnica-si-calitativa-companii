@@ -25,7 +25,7 @@ Funcțiile serverless Python pe Vercel au o limită de dimensiune (~250MB incluz
 - **`yfinance`** (Python) — gratuit, fără cheie API necesară.
 - Confirmat funcțional (testat live) pentru:
   - Companii internaționale, ex. `AAPL`
-  - Companii de la BVB, folosind sufixul `.RO`, ex. `SNP.RO` (OMV Petrom) — testat live; `TLV.RO` (Banca Transilvania), `SNG.RO` (Romgaz) nu au fost re-testate explicit, dar folosesc aceeași sursă de date
+  - Companii de la BVB, folosind sufixul `.RO`, ex. `SNP.RO` (OMV Petrom), `TLV.RO` (Banca Transilvania), `SNG.RO` (Romgaz) — toate testate live, inclusiv pe deploy-ul de producție
   - Indici/mărfuri/valute pentru bara "Markets" (vezi mai jos): `^GSPC` (S&P 500), `^IXIC` (Nasdaq), `GC=F` (Gold), `^GDAXI` (DAX), `^BET.RO` (indicele BET, BVB), `EURUSD=X`
 - Oferă atât preț istoric (OHLCV), cât și date fundamentale (P/E, EPS, debt/equity, profit margin, ROE, dividend yield, sector, industrie, market cap etc.)
 - Notă: unele câmpuri fundamentale pot lipsi pentru anumite companii/sectoare (ex. `debtToEquity` lipsește uneori la bănci) — normal, trebuie tratat gracios în UI. La fel, `grossMargins` vine ca `0.0` (nu `None`) pentru bănci/instituții financiare, unde conceptul nu se aplică — tratat explicit ca "date lipsă".
@@ -126,6 +126,16 @@ Inclus ca **field explicit în răspunsul API** (nu doar text în UI, pentru a n
 
 ---
 
+## Localizare (RO/EN)
+
+Comutator de limbă (buton RO/EN lângă titlu), cu traducere **completă** — atât interfața statică, cât și textul generat dinamic de motorul de analiză (recomandări, semnale calitative, verdicte, mesaje de eroare), nu doar etichetele fixe.
+
+- **Backend** (`api/analyze.py`): un dicționar de mesaje RO/EN inline în fișier (nu într-un modul separat — vezi nota de mai jos) și un parametru `lang` pe `/api/analyze`. Recomandarea tehnică întoarce și o cheie stabilă, independentă de limbă (`recommendationKey`, ex. `"strong_buy"`), separat de eticheta tradusă (`recommendation`) — frontend-ul colorează pe baza cheii, nu a textului, ca să nu se rupă la schimbarea limbii.
+- **Frontend** (`lib/i18n.ts` + `lib/LanguageContext.tsx`): context React cu preferința de limbă persistată în `localStorage`. Glosarul (`lib/glossary.ts`) are definiții bilingve și o dublă cheie de căutare (`roKey`/`enKey`), pentru că eticheta unui semnal ("Gross Margin vs Industrie/Industry") diferă între limbi și e folosită atât ca text afișat, cât și ca cheie de căutare în glosar.
+- **Notă tehnică importantă:** un `import` dintr-un modul Python separat (`api/i18n.py`) funcționa perfect local, dar **pica cu eroare 500 pe Vercel** — mediul serverless Python nu rezolva fiabil importul dintre fișierele din `api/`. Fix: tot dicționarul de traduceri e inclus direct (inline) în `api/analyze.py`, fără dependență de fișier separat. De reținut pentru orice extindere viitoare a backend-ului: **evită import-uri între fișierele din `api/`** — fiecare fișier acolo e deployat ca funcție serverless independentă.
+
+---
+
 ## Decizii explicite de scop (ce NU face proiectul)
 
 - Nu folosește niciun LLM/AI generativ (analiza calitativă e rule-based, nu costă nimic)
@@ -137,9 +147,8 @@ Inclus ca **field explicit în răspunsul API** (nu doar text în UI, pentru a n
 
 ## Status
 
-MVP-ul de bază și toate funcționalitățile suplimentare din acest document sunt **implementate, testate local și live pe Vercel**: analiză tehnică + calitativă completă (inclusiv comparațiile "vs. sector"), watchlist, comparație, istoric, export, căutare, glosar, bara Markets, secțiunea de recomandări financiare. Layout-ul e testat și confirmat responsive (375px și 320px, fără overflow orizontal).
+**Complet — toate funcționalitățile din acest document sunt implementate, testate și live.** MVP-ul de bază, toate funcționalitățile suplimentare (watchlist, comparație, istoric, export, căutare, glosar, bara Markets, recomandări financiare) și localizarea RO/EN funcționează pe deploy-ul de producție. Layout confirmat responsive (375px și 320px, fără overflow orizontal). Testate live, cu date reale: `AAPL` (SUA), `TLV.RO`, `SNG.RO`, `SNP.RO` (BVB), în ambele limbi.
 
-**Deploy live:** `https://analiza-tehnica-si-calitativa-compa.vercel.app/` — plan Vercel Hobby (gratuit), auto-deploy la fiecare push pe `main`. Testat direct: homepage, `/api/analyze` și `/api/markets` răspund `200` cu date reale.
+**Deploy live:** `https://analiza-tehnica-si-calitativa-compa.vercel.app/` — plan Vercel Hobby (gratuit), auto-deploy la fiecare push pe `main`.
 
-Rămas de făcut / de verificat:
-- **`TLV.RO` / `SNG.RO`** — folosesc aceeași sursă de date ca `SNP.RO` (testat), dar n-au fost re-verificate individual.
+Nu mai există puncte deschise cunoscute. Orice extindere de aici încolo e o funcționalitate nouă, nu un gap din specificațiile inițiale.
