@@ -5,8 +5,8 @@ export default function Glossary() {
   const calitativ = GLOSSARY.filter((t) => t.category === "calitativ");
 
   return (
-    <details className="rounded border border-gray-200 p-3 text-sm">
-      <summary className="cursor-pointer select-none font-semibold text-gray-900">
+    <details className="rounded border border-indigo-100 bg-indigo-50/40 p-3 text-sm">
+      <summary className="cursor-pointer select-none font-semibold text-indigo-900">
         Glosar de termeni
       </summary>
       <div className="mt-3 space-y-4">

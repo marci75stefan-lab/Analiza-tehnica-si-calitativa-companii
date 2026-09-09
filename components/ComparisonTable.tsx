@@ -12,7 +12,7 @@ export default function ComparisonTable({ results }: { results: TickerAnalysis[]
   return (
     <div className="overflow-x-auto rounded border border-gray-200">
       <table className="min-w-full text-xs">
-        <thead className="bg-gray-50 text-left text-gray-500">
+        <thead className="bg-indigo-50 text-left text-indigo-900">
           <tr>
             <th className="px-3 py-2">Ticker</th>
             <th className="px-3 py-2">Pret</th>

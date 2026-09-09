@@ -30,9 +30,9 @@ function formatNumber(value: number | null | undefined, digits = 2): string {
 }
 
 function recommendationColor(recommendation: string): string {
-  if (recommendation.includes("Cumparare")) return "text-green-600";
-  if (recommendation.includes("Vanzare")) return "text-red-600";
-  return "text-gray-600";
+  if (recommendation.includes("Cumparare")) return "text-emerald-600";
+  if (recommendation.includes("Vanzare")) return "text-rose-600";
+  return "text-indigo-600";
 }
 
 export default function Home() {
@@ -110,7 +110,7 @@ export default function Home() {
       <div>
         <MarketsBar />
 
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-indigo-950">
           Analiza Tehnica si Calitativa a Companiilor Listate la Bursa
         </h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -130,12 +130,12 @@ export default function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`ex: AAPL, SNP.RO, TLV.RO (max ${MAX_TICKERS})`}
-            className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500"
+            className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
           />
           <button
             type="submit"
             disabled={loading}
-            className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {loading ? "Se incarca..." : "Analizeaza"}
           </button>
@@ -150,8 +150,8 @@ export default function Home() {
                 onClick={() => setPeriod(opt.value)}
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   period === opt.value
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:bg-gray-100"
+                    ? "bg-indigo-600 text-white"
+                    : "text-gray-500 hover:bg-indigo-50"
                 }`}
               >
                 {opt.label}
@@ -171,14 +171,14 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => exportToCsv(data)}
-                  className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
                 >
                   Export CSV
                 </button>
                 <button
                   type="button"
                   onClick={() => exportToPdf(data)}
-                  className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
                 >
                   Export PDF
                 </button>
@@ -201,16 +201,16 @@ export default function Home() {
       </div>
 
       <aside className="space-y-6">
-        <section>
-          <h2 className="text-sm font-semibold text-gray-900">Watchlist</h2>
+        <section className="rounded border border-gray-200 bg-gray-50/60 p-3">
+          <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">Watchlist</h2>
           <div className="mt-2">
             <Watchlist tickers={watchlist} onSelect={handleWatchlistSelect} onRemove={(t) => setWatchlist(removeFromWatchlist(t))} />
           </div>
         </section>
 
-        <section>
+        <section className="rounded border border-gray-200 bg-gray-50/60 p-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900">Istoric analize</h2>
+            <h2 className="border-l-2 border-indigo-500 pl-2 text-sm font-semibold text-gray-900">Istoric analize</h2>
             {history.length > 0 && (
               <button
                 type="button"
@@ -261,7 +261,7 @@ function TickerCard({
   const { technical, price, fundamentals, qualitative } = result;
 
   return (
-    <div className="rounded border border-gray-200 p-5">
+    <div className="rounded border border-gray-200 border-t-4 border-t-indigo-500 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
@@ -277,7 +277,7 @@ function TickerCard({
               {formatNumber(price.current)} {result.currency}
             </p>
             {price.change !== null && price.changePercent !== null && (
-              <p className={`text-xs font-medium ${price.change >= 0 ? "text-green-600" : "text-red-600"}`}>
+              <p className={`text-xs font-medium ${price.change >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                 {price.change >= 0 ? "+" : ""}
                 {formatNumber(price.change)} ({price.change >= 0 ? "+" : ""}
                 {formatNumber(price.changePercent)}%) azi
@@ -289,8 +289,8 @@ function TickerCard({
             onClick={onToggleWatchlist}
             className={`rounded border px-2 py-1 text-xs font-medium ${
               inWatchlist
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                ? "border-indigo-600 bg-indigo-600 text-white"
+                : "border-gray-300 text-gray-600 hover:border-indigo-300 hover:bg-indigo-50"
             }`}
           >
             {inWatchlist ? "In watchlist" : "+ Watchlist"}
@@ -322,8 +322,8 @@ function TickerCard({
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div className="rounded bg-gray-50 p-4">
-          <p className="flex items-center text-xs font-medium uppercase tracking-wide text-gray-500">
+        <div className="rounded border border-indigo-100 bg-indigo-50/60 p-4">
+          <p className="flex items-center text-xs font-medium uppercase tracking-wide text-indigo-700">
             Semnal tehnic
             <Tooltip text={glossaryDefinition("recommendation")} />
           </p>
@@ -356,8 +356,8 @@ function TickerCard({
           </ul>
         </div>
 
-        <div className="rounded bg-gray-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Analiza calitativa</p>
+        <div className="rounded border border-sky-100 bg-sky-50/60 p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-sky-700">Analiza calitativa</p>
           <p className="mt-1 text-sm font-medium text-gray-900">{qualitative.verdict}</p>
           <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
             {qualitative.signals.map((s) => (

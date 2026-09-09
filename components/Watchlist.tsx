@@ -14,8 +14,8 @@ export default function Watchlist({ tickers, onSelect, onRemove }: WatchlistProp
   return (
     <ul className="space-y-1">
       {tickers.map((t) => (
-        <li key={t} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-sm">
-          <button type="button" onClick={() => onSelect(t)} className="text-left text-gray-800 hover:underline">
+        <li key={t} className="flex items-center justify-between rounded bg-white px-2 py-1 text-sm hover:bg-indigo-50">
+          <button type="button" onClick={() => onSelect(t)} className="text-left text-gray-800 hover:text-indigo-700 hover:underline">
             {t}
           </button>
           <button

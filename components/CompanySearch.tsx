@@ -56,7 +56,7 @@ export default function CompanySearch({ onPick }: { onPick: (symbol: string) => 
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder="Cauta dupa numele companiei (ex: Apple, Banca Transilvania)"
-        className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500"
+        className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
       />
       {open && (
         <div className="absolute z-30 mt-1 w-full rounded border border-gray-200 bg-white shadow-lg">
@@ -70,7 +70,7 @@ export default function CompanySearch({ onPick }: { onPick: (symbol: string) => 
                 key={r.symbol}
                 type="button"
                 onClick={() => handlePick(r.symbol)}
-                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-indigo-50"
               >
                 <span className="truncate">
                   <span className="font-medium text-gray-900">{r.symbol}</span>{" "}

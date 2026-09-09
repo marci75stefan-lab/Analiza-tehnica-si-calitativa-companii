@@ -19,7 +19,7 @@ export default function HistoryPanel({ entries, onSelect }: HistoryPanelProps) {
           <button
             type="button"
             onClick={() => onSelect(entry)}
-            className="w-full rounded bg-gray-50 px-2 py-1 text-left text-xs hover:bg-gray-100"
+            className="w-full rounded bg-white px-2 py-1 text-left text-xs hover:bg-indigo-50"
           >
             <span className="font-medium text-gray-800">{entry.tickers.join(", ")}</span>
             <br />
