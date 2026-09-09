@@ -147,6 +147,24 @@ EQUITY_RISK_PREMIUM = 0.05  # approx. long-run market risk premium
 DEFAULT_CREDIT_SPREAD = 0.02  # fallback spread over the risk-free rate
 DEFAULT_TAX_RATE = 0.21  # fallback effective tax rate
 
+# Approximate long-run gross margin benchmarks per sector (broad, static
+# reference values - not a live fetch, to keep the app free and fast; no
+# free API provides a real-time sector-wide gross margin aggregate).
+SECTOR_GROSS_MARGIN_BENCHMARKS = {
+    "Technology": 0.50,
+    "Healthcare": 0.55,
+    "Communication Services": 0.55,
+    "Financial Services": 0.45,
+    "Consumer Cyclical": 0.35,
+    "Consumer Defensive": 0.30,
+    "Industrials": 0.30,
+    "Energy": 0.30,
+    "Utilities": 0.35,
+    "Real Estate": 0.40,
+    "Basic Materials": 0.25,
+}
+DEFAULT_GROSS_MARGIN_BENCHMARK = 0.35  # fallback for unmapped/missing sectors
+
 
 def compute_fcf(tk, info):
     fcf = info.get("freeCashflow")
@@ -226,6 +244,38 @@ def qualitative_analysis(info, fcf, wacc):
             add("Profit margin (%)", round(margin * 100, 2), "positive", "Marja de profit solida")
         else:
             add("Profit margin (%)", round(margin * 100, 2), "neutral", "Marja de profit modesta")
+
+    gross_margin = info.get("grossMargins")
+    # yfinance reports an exact 0.0 (rather than None) for sectors where
+    # "cost of goods sold" isn't a meaningful concept, e.g. banks/insurers -
+    # treat that as missing data rather than a real zero margin.
+    if gross_margin is not None and gross_margin != 0:
+        sector = info.get("sector")
+        benchmark = SECTOR_GROSS_MARGIN_BENCHMARKS.get(sector, DEFAULT_GROSS_MARGIN_BENCHMARK)
+        gross_margin_pct = round(gross_margin * 100, 2)
+        benchmark_pct = round(benchmark * 100, 1)
+        sector_label = sector or "sector necunoscut"
+        if gross_margin > benchmark + 0.03:
+            add(
+                "Gross Margin vs Industrie (%)",
+                gross_margin_pct,
+                "positive",
+                f"Peste media estimata pentru {sector_label} (~{benchmark_pct}%) - avantaj competitiv sau putere de pricing",
+            )
+        elif gross_margin < benchmark - 0.03:
+            add(
+                "Gross Margin vs Industrie (%)",
+                gross_margin_pct,
+                "negative",
+                f"Sub media estimata pentru {sector_label} (~{benchmark_pct}%) - marje mai subtiri decat concurenta",
+            )
+        else:
+            add(
+                "Gross Margin vs Industrie (%)",
+                gross_margin_pct,
+                "neutral",
+                f"In linie cu media estimata pentru {sector_label} (~{benchmark_pct}%)",
+            )
 
     roe = info.get("returnOnEquity")
     if roe is not None:

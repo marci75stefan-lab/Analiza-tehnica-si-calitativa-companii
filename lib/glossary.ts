@@ -122,6 +122,13 @@ export const GLOSSARY: GlossaryTerm[] = [
       "Ce procent din venituri ramane profit net dupa toate cheltuielile. Marja mare = companie eficienta.",
   },
   {
+    key: "Gross Margin vs Industrie (%)",
+    term: "Gross Margin vs Industrie",
+    category: "calitativ",
+    definition:
+      "Ce procent din venituri ramane dupa costul bunurilor vandute (COGS), comparat cu o medie estimata a sectorului companiei. Marja peste medie poate indica avantaj competitiv sau putere de pricing; sub medie, marje mai subtiri decat concurenta. Media pe sector e o valoare de referinta statica, nu una masurata live.",
+  },
+  {
     key: "ROE (%)",
     term: "ROE (Return on Equity)",
     category: "calitativ",
